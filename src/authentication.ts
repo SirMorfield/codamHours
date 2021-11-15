@@ -1,12 +1,10 @@
 import passport from 'passport'
 import { OAuth2Strategy } from 'passport-oauth'
-import fs from 'fs'
-import fetch from 'node-fetch'
+import { env } from './secrets'
 
-export const provider = '42'
 export function authenticate(req, res, next) {
 	if (!req.user) {
-		res.redirect(`/auth/${provider}`);
+		res.redirect(`/auth/${env.provider}`);
 	} else {
 		next();
 	}
@@ -22,17 +20,6 @@ export interface UserProfile {
 }
 const users: UserProfile[] = []
 
-type URL = string
-
-interface Secrets {
-	clientUID: string,
-	clientSecret: string,
-	callbackURL: URL,
-	authorizationURL: URL,
-	tokenURL: URL,
-	sessionSecret: string,
-}
-export const secrets = JSON.parse(fs.readFileSync('./secrets.json').toString()) as Secrets
 
 passport.serializeUser((user, done) => {
 	done(null, user.id);
@@ -45,7 +32,7 @@ passport.deserializeUser((id, done) => {
 
 async function getProfile(accessToken: string, refreshToken: string): Promise<UserProfile | null> {
 	try {
-		const response = await fetch("https://api.intra.42.fr/v2/me", {
+		const response = await fetch(env.profileURL, {
 			headers: {
 				Authorization: `Bearer ${accessToken}`
 			}
@@ -63,11 +50,11 @@ async function getProfile(accessToken: string, refreshToken: string): Promise<Us
 }
 
 const client = new OAuth2Strategy({
-	authorizationURL: secrets.authorizationURL,
-	tokenURL: secrets.tokenURL,
-	clientID: secrets.clientUID,
-	clientSecret: secrets.clientSecret,
-	callbackURL: secrets.callbackURL,
+	authorizationURL: env.authorizationURL,
+	tokenURL: env.tokenURL,
+	clientID: env.clientUID,
+	clientSecret: env.clientSecret,
+	callbackURL: env.callbackURL,
 	// passReqToCallback: true
 },
 	async (accessToken, refreshToken, _profile, done) => { // fires when user clicked allow
@@ -82,7 +69,7 @@ const client = new OAuth2Strategy({
 		done(null, existingUser);
 	}
 )
-passport.use(provider, client)
+passport.use(env.provider, client)
 
 export { passport }
 

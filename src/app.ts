@@ -2,7 +2,8 @@ import express from "express"
 import path from "path"
 import session from 'express-session'
 import { v4 as uuid } from 'uuid'
-import { authenticate, provider, passport, secrets, UserProfile } from './authentication'
+import { authenticate, passport, UserProfile } from './authentication'
+import { env } from "./secrets"
 
 const app = express()
 app.set("views", path.join(__dirname, "../views"))
@@ -14,7 +15,7 @@ app.use(session({
 		return uuid()
 	},
 	// store: new FileStore(),
-	secret: secrets.sessionSecret,
+	secret: env.sessionSecret,
 	resave: false,
 	saveUninitialized: true
 }))
@@ -22,11 +23,11 @@ app.use(session({
 app.use(passport.initialize())
 app.use(passport.session())
 
-app.get(`/auth/${provider}/`, passport.authenticate(provider, { scope: ['public'] }))
-app.get(`/auth/${provider}/callback`,
-	passport.authenticate(provider, {
+app.get(`/auth/${env.provider}/`, passport.authenticate(env.provider, { scope: ['public'] }))
+app.get(`/auth/${env.provider}/callback`,
+	passport.authenticate(env.provider, {
 		successRedirect: '/',
-		failureRedirect: `/auth/${provider}`
+		failureRedirect: `/auth/${env.provider}`
 	}))
 
 app.get('/', authenticate, (req, res) => {
