@@ -3,7 +3,7 @@ import path from "path"
 import session from 'express-session'
 import { v4 as uuid } from 'uuid'
 import { authenticate, passport, UserProfile } from './authentication'
-import { env } from "./secrets"
+import { env } from "./env"
 
 const app = express()
 app.set("views", path.join(__dirname, "../views"))
@@ -23,17 +23,20 @@ app.use(session({
 app.use(passport.initialize())
 app.use(passport.session())
 
-app.get(`/auth/${env.provider}/`, passport.authenticate(env.provider, { scope: ['public'] }))
+app.get(`/auth/${env.provider}/`, passport.authenticate(env.provider, { scope: env.scope }))
 app.get(`/auth/${env.provider}/callback`,
 	passport.authenticate(env.provider, {
 		successRedirect: '/',
-		failureRedirect: `/auth/${env.provider}`
+		failureRedirect: env.loginRoute
 	}))
+app.get('/auth/logout', (req, res) => {
+	req.logout()
+	res.redirect('/')
+})
 
 app.get('/', authenticate, (req, res) => {
 	const user = req.user as UserProfile
 	res.send(user.login)
-	res.render('index.ejs');
 })
 
 app.listen(8080, () => {

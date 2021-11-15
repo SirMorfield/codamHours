@@ -1,10 +1,10 @@
 import passport from 'passport'
 import { OAuth2Strategy } from 'passport-oauth'
-import { env } from './secrets'
+import { env } from './env'
 
 export function authenticate(req, res, next) {
 	if (!req.user) {
-		res.redirect(`/auth/${env.provider}`);
+		res.redirect(env.loginRoute);
 	} else {
 		next();
 	}
