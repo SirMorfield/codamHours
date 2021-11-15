@@ -1,6 +1,7 @@
 import passport from 'passport'
 import { OAuth2Strategy } from 'passport-oauth'
 import { env } from './env'
+import fetch from 'node-fetch'
 
 export function authenticate(req, res, next) {
 	if (!req.user) {

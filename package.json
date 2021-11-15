@@ -3,7 +3,6 @@
 	"version": "1.0.0",
 	"description": "",
 	"main": "app.js",
-	"type": "module",
 	"dependencies": {
 		"cookie-session": "^1.4.0",
 		"ejs": "^3.1.6",
