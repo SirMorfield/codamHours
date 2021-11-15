@@ -1,8 +1,7 @@
 import passport from 'passport'
 import { OAuth2Strategy } from 'passport-oauth'
 import fs from 'fs'
-import { v4 as uuid } from 'uuid'
-
+import fetch from 'node-fetch'
 
 export const provider = '42'
 export function authenticate(req, res, next) {
@@ -13,10 +12,15 @@ export function authenticate(req, res, next) {
 	}
 }
 
-interface User {
-	id: string,
+export interface UserProfile {
+	id: number,
+	login: string,
+	first_name: string,
+	displayname: string,
+	accessToken: string,
+	refreshToken: string,
 }
-const users: any[] = []
+const users: UserProfile[] = []
 
 type URL = string
 
@@ -31,17 +35,34 @@ interface Secrets {
 export const secrets = JSON.parse(fs.readFileSync('./secrets.json').toString()) as Secrets
 
 passport.serializeUser((user, done) => {
-	console.log('serialize', user)
 	done(null, user.id);
 })
 
 passport.deserializeUser((id, done) => {
-	console.log('deserialize', id)
 	const user = users.find((user) => user.id === id)
 	done(null, user);
 })
 
-passport.use(provider, new OAuth2Strategy({
+async function getProfile(accessToken: string, refreshToken: string): Promise<UserProfile | null> {
+	try {
+		const response = await fetch("https://api.intra.42.fr/v2/me", {
+			headers: {
+				Authorization: `Bearer ${accessToken}`
+			}
+		})
+		const json = await response.json()
+		return {
+			id: json.id,
+			login: json.login,
+			first_name: json.first_name,
+			displayname: json.displayname,
+			accessToken,
+			refreshToken,
+		}
+	} catch (err) { return null }
+}
+
+const client = new OAuth2Strategy({
 	authorizationURL: secrets.authorizationURL,
 	tokenURL: secrets.tokenURL,
 	clientID: secrets.clientUID,
@@ -49,16 +70,19 @@ passport.use(provider, new OAuth2Strategy({
 	callbackURL: secrets.callbackURL,
 	// passReqToCallback: true
 },
-	(accessToken, refreshToken, profile, done) => { // fires when user clicked allow
-		console.log('allow', accessToken, refreshToken, profile)
-		let user = users.find((user) => user.id === refreshToken)
-		if (!user) {
-			users.push({ id: refreshToken })
-			user = users.find((user) => user.id === refreshToken)
+	async (accessToken, refreshToken, _profile, done) => { // fires when user clicked allow
+		const newUser = await getProfile(accessToken, refreshToken)
+		if (!newUser)
+			return done('cannot get user info', null)
+		let existingUser = users.find((user) => user.id === newUser.id)
+		if (!existingUser) {
+			users.push(newUser)
+			existingUser = newUser
 		}
-		done(null, user);
+		done(null, existingUser);
 	}
-))
+)
+passport.use(provider, client)
 
 export { passport }
 
