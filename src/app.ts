@@ -1,18 +1,24 @@
 import express from "express"
 import path from "path"
-import cookieSession from 'cookie-session'
+import session from 'express-session'
+import { v4 as uuid } from 'uuid'
+import { authenticate, provider, passport, secrets } from './authentication'
+
 const app = express()
-
-// const FileStore = sessionFileStore(session)
-import { authenticate, provider, passport } from './authentication'
-
-
 app.set("views", path.join(__dirname, "../views"))
 app.set('viewengine', 'ejs')
 
-app.use(cookieSession({
-	maxAge: 24 * 60 * 60 * 1000,
-	keys: ['ddgasdgsagasassg3']
+// const FileStore = require('session-file-store')(session);
+app.use(session({
+	genid: (req) => {
+		console.log('Inside session middleware genid function')
+		console.log(`Request object sessionID from client: ${req.sessionID}`)
+		return uuid() // use UUIDs for session IDs
+	},
+	// store: new FileStore(),
+	secret: secrets.sessionSecret,
+	resave: false,
+	saveUninitialized: true
 }))
 
 app.use(passport.initialize())

@@ -4,9 +4,10 @@ import fs from 'fs'
 import { v4 as uuid } from 'uuid'
 
 
+export const provider = '42'
 export function authenticate(req, res, next) {
 	if (!req.user) {
-		res.redirect('/auth/provider');
+		res.redirect(`/auth/${provider}`);
 	} else {
 		next();
 	}
@@ -15,9 +16,7 @@ export function authenticate(req, res, next) {
 interface User {
 	id: string,
 }
-const users: any[] = [
-
-]
+const users: any[] = []
 
 type URL = string
 
@@ -26,10 +25,10 @@ interface Secrets {
 	clientSecret: string,
 	callbackURL: URL,
 	authorizationURL: URL,
-	tokenURL: URL
+	tokenURL: URL,
+	sessionSecret: string,
 }
-const secrets = JSON.parse(fs.readFileSync('./secrets.json').toString()) as Secrets
-export const provider = '42'
+export const secrets = JSON.parse(fs.readFileSync('./secrets.json').toString()) as Secrets
 
 passport.serializeUser((user, done) => {
 	console.log('serialize', user)
