@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  hours-app:
+    build:
+      context: ./app
+      dockerfile: ./Dockerfile.dev
+    volumes:
+      - './app:/app'
+    ports:
+      - 8080:8080
+    restart: unless-stopped
+
+  hours-database:
+    build:
+      context: ./database
+      dockerfile: ./Dockerfile.dev
+    volumes:
+      - './database:/app'
+    ports:
+      - 8081:8081
+    restart: unless-stopped

@@ -9,6 +9,5 @@ app.get("/user/:userName", (req, res) => {
 	res.send(dataBase.getPersonInfo(userName))
 })
 
-app.listen(8081, () => {
-	console.log('started')
-})
+const port = process.env['PORT'] || 8081
+app.listen(port, () => console.log('database ready on port', port))

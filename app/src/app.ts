@@ -39,6 +39,5 @@ app.get('/', authenticate, (req, res) => {
 	res.send(user.login)
 })
 
-app.listen(8080, () => {
-	console.log('started')
-})
+const port = process.env['PORT'] || 8080
+app.listen(port, () => console.log('app ready on port', port))
