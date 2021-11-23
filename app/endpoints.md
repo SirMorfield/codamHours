@@ -1,4 +1,4 @@
-GET /$LOGIN
+GET /user/$NAME
 ```json5
 {
 	"lastUpdate":
@@ -12,7 +12,7 @@ GET /$LOGIN
 			"weekNumber": 42, // :int year week
 			"start": "Mon 12 Aug",
 			"end": "Sun 19 Aug",
-			"hours": 5.2, // :float
+			"hours": 5.2 // :float
 		}
 	]
 }
