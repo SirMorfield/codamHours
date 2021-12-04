@@ -1,0 +1,5 @@
+/build/
+.DS_Store
+/test.js
+node_modules/
+database.json
