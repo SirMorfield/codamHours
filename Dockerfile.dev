@@ -1,4 +1,4 @@
-FROM node:lts
+FROM node:16
 
 WORKDIR /app
 
@@ -8,5 +8,4 @@ WORKDIR /app
 
 EXPOSE 8080
 
-# ENTRYPOINT [ "npm", "run", "start" ]
-CMD [ "sleep", "9999999999999999999999999" ]
+ENTRYPOINT [ "npm", "run", "dev" ]
