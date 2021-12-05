@@ -96,22 +96,23 @@ export class DataBase {
 		await this.#syncToDisk()
 	}
 
-	async addDay(login: IntraLogin, epoch: number, hours: number): Promise<void> {
-		await this.#createIfUserDoesntExist(login)
-		const personData: DatabasePerson = this.#content[login]!
-		if (epoch > personData.lastUpdate)
-			personData.lastUpdate = epoch
+	async addLogtimeReport(report: LogtimeReport): Promise<void> {
+		await this.#createIfUserDoesntExist(report.login)
+		const personData: DatabasePerson = this.#content[report.login]!
+		if (report.epoch > personData.lastUpdate)
+			personData.lastUpdate = report.epoch
 
-		const [week, year] = this.#getWeekAndYear(epoch)
+		const [week, year] = this.#getWeekAndYear(report.epoch)
 		const weekData = personData.weeks.find(x => x.year === year && x.week === week)
 		if (!weekData)
 			personData.weeks.push({
 				week: week,
 				year: year,
-				hours: hours,
+				hours: report.buildingTime,
 			})
 		else
-			weekData.hours += hours
+			weekData.hours += report.buildingTime
+		personData.mails.push(report)
 		await this.#syncToDisk()
 	}
 

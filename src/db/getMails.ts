@@ -30,7 +30,7 @@ async function getNewToken(client): Promise<Object> {
 
 async function getClient(): Promise<OAuth2Client> {
 	const credentials = JSON.parse((await fs.promises.readFile(CREDENTIALS_PATH)).toString())
-	const { client_secret, client_id, redirect_uris } = credentials.installed
+	const { client_secret, client_id, redirect_uris } = credentials.web
 	const client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0])
 
 	let token
@@ -106,5 +106,6 @@ export async function getMails(maxResults: number): Promise<Mail[]> {
 	for (const id of IDs) {
 		contents.push(await getContent(auth, id) as Mail) // TODO: protect?
 	}
+	// console.log('got', contents.length, 'mail contents')
 	return contents
 }

@@ -4,7 +4,7 @@ import session from 'express-session'
 import { v4 as uuid } from 'uuid'
 import { authenticate, passport, UserProfile } from './authentication'
 import { env } from "./env"
-import { getLogtimeReport } from './db/addMailsToDatabase'
+import { getLogtimeReport, LogtimeReport } from './db/addMailsToDatabase'
 import { DataBase } from './db/database'
 import { getMails, Mail } from './db/getMails'
 
@@ -41,9 +41,9 @@ const dataBase = new DataBase("database.json")
 async function pullMails() {
 	const mails: Mail[] = await getMails(42)// TODO: paging
 	for (const mail of mails) {
-		const report = getLogtimeReport(mail)
+		const report: LogtimeReport | null = getLogtimeReport(mail)
 		if (report)
-			await dataBase.addDay(report.login, report.epoch, report.buildingTime)
+			await dataBase.addLogtimeReport(report)
 	}
 }
 (async () => { // TODO
