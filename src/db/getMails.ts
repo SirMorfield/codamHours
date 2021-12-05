@@ -82,17 +82,22 @@ async function getContent(auth: OAuth2Client, id: MailID): Promise<Mail | null> 
 				resolve(null)
 			}
 			// TODO: what if there is more parts? for now a single part can hold a email length of 48000 chars
-			const payload = res!.data!.payload!
-			let body = payload.parts![0]!.body!.data
-			let decoded = base64.decode(body!.replace(/-/g, '+').replace(/_/g, '/'));
-			const from = (payload.headers!.find(header => header.name == 'From'))?.value!
-			const date = (payload.headers!.find(header => header.name == 'Date'))?.value!
-			// TODO: protect?
-			resolve({
-				content: decoded,
-				from,
-				date: new Date(date)
-			})
+			try {
+				const payload = res!.data!.payload!
+				const body: string = payload.parts ? payload.parts[0]!.body!.data! : payload.body!.data!
+				let decoded = base64.decode(body.replace(/-/g, '+').replace(/_/g, '/'))
+				const from = (payload.headers!.find(header => header.name == 'From'))?.value || ''
+				const date = (payload.headers!.find(header => header.name == 'Date'))?.value || ''
+				// TODO: protect?
+				resolve({
+					content: decoded,
+					from,
+					date: new Date(date)
+				})
+			} catch (err) {
+				console.error(err)
+				resolve(null)
+			}
 		})
 	})
 }
