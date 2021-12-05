@@ -4,7 +4,9 @@ import session from 'express-session'
 import { v4 as uuid } from 'uuid'
 import { authenticate, passport, UserProfile } from './authentication'
 import { env } from "./env"
-import fetch from 'node-fetch'
+import { getLogtimeReport } from './db/addMailsToDatabase'
+import { DataBase } from './db/database'
+import { getMails, Mail } from './db/getMails'
 
 const app = express()
 app.set("views", path.join(__dirname, "../views"))
@@ -35,10 +37,25 @@ app.get('/auth/logout', (req, res) => {
 	res.redirect('/')
 })
 
+const dataBase = new DataBase("database.json")
+async function pullMails() {
+	const mails: Mail[] = await getMails(42)// TODO: paging
+	for (const mail of mails) {
+		const report = getLogtimeReport(mail)
+		if (report)
+			await dataBase.addDay(report.login, report.epoch, report.buildingTime)
+	}
+}
+(async () => { // TODO
+	while (true) {
+		await pullMails()
+		await new Promise((resolve, reject) => setTimeout(resolve, 10 * 60 * 1000))
+	}
+})()
+
 app.get('/', authenticate, async (req, res) => {
 	const user = req.user as UserProfile
-	const data = await fetch(`http://hours-database:8081/user/${user.login}`)
-	res.send(data)
+	res.send(dataBase.getPersonInfo(user.login))
 })
 
 const port = process.env['PORT'] || 8080

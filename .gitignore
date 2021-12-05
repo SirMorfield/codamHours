@@ -3,3 +3,6 @@
 /test.js
 node_modules/
 env.json
+/database.json
+/credentials.json
+/token.json
