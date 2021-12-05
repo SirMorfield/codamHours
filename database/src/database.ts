@@ -1,4 +1,5 @@
 import fs from 'fs'
+import { LogtimeReport } from './addMailsToDatabase'
 
 interface DatabasePerson {
 	lastUpdate: number,
@@ -7,6 +8,7 @@ interface DatabasePerson {
 		week: number,
 		hours: number,
 	}[],
+	mails: LogtimeReport[]
 }
 
 interface PersonData {
@@ -19,14 +21,15 @@ interface PersonData {
 		start: DateString,
 		end: DateString,
 		hours: number,
-	}[]
+	}[],
+	mails: LogtimeReport[],
 }
 
 interface DatabaseContent {
 	[key: string]: DatabasePerson
 }
 
-type IntraLogin = string
+export type IntraLogin = string
 type DateString = string
 
 export class DataBase {
@@ -82,7 +85,19 @@ export class DataBase {
 		}
 	}
 
+	async #createIfUserDoesntExist(login: IntraLogin) {
+		if (this.#content[login])
+			return
+		this.#content[login] = {
+			lastUpdate: Date.now(),
+			weeks: [],
+			mails: []
+		}
+		await this.#syncToDisk()
+	}
+
 	async addDay(login: IntraLogin, epoch: number, hours: number): Promise<void> {
+		await this.#createIfUserDoesntExist(login)
 		const personData: DatabasePerson = this.#content[login]!
 		if (epoch > personData.lastUpdate)
 			personData.lastUpdate = epoch
@@ -117,8 +132,8 @@ export class DataBase {
 					...this.#getWeekRange(week.year, week.week),
 					hours: week.hours,
 				}
-			})
-
+			}),
+			mails: personData.mails,
 		}
 	}
 }

@@ -4,6 +4,7 @@ import session from 'express-session'
 import { v4 as uuid } from 'uuid'
 import { authenticate, passport, UserProfile } from './authentication'
 import { env } from "./env"
+import fetch from 'node-fetch'
 
 const app = express()
 app.set("views", path.join(__dirname, "../views"))
@@ -34,9 +35,10 @@ app.get('/auth/logout', (req, res) => {
 	res.redirect('/')
 })
 
-app.get('/', authenticate, (req, res) => {
+app.get('/', authenticate, async (req, res) => {
 	const user = req.user as UserProfile
-	res.send(user.login)
+	const data = await fetch(`http://hours-database:8081/user/${user.login}`)
+	res.send(data)
 })
 
 const port = process.env['PORT'] || 8080
