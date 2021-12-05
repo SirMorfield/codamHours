@@ -64,13 +64,13 @@ async function listIDs(auth: OAuth2Client, maxResults: number): Promise<MailID[]
 	})
 }
 
-export interface Email {
+export interface Mail {
 	content: string,
 	from: string,
 	date: Date
 }
 
-async function getContent(auth: OAuth2Client, id: MailID): Promise<Email | null> {
+async function getContent(auth: OAuth2Client, id: MailID): Promise<Mail | null> {
 	const gmail = google.gmail({ version: 'v1', auth })
 	return new Promise((resolve, reject) => {
 		gmail.users.messages.get({
@@ -98,13 +98,13 @@ async function getContent(auth: OAuth2Client, id: MailID): Promise<Email | null>
 }
 
 let auth
-export async function getMails(maxResults: number): Promise<Email[]> {
+export async function getMails(maxResults: number): Promise<Mail[]> {
 	if (!auth)
 		auth = await getClient()
 	const IDs: MailID[] = await listIDs(auth, maxResults)
-	const contents: Email[] = []
+	const contents: Mail[] = []
 	for (const id of IDs) {
-		contents.push(await getContent(auth, id) as Email) // TODO: protect?
+		contents.push(await getContent(auth, id) as Mail) // TODO: protect?
 	}
 	return contents
 }
