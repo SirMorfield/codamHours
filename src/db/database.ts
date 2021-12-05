@@ -11,17 +11,19 @@ interface DatabasePerson {
 	mails: LogtimeReport[]
 }
 
+interface Weekdata {
+	week: number,
+	start: DateString,
+	end: DateString,
+	hours: number,
+}
+
 interface PersonData {
 	lastUpdate: {
 		formatted: DateString,
 		timestamp: number,
 	},
-	weeks: {
-		week: number,
-		start: DateString,
-		end: DateString,
-		hours: number,
-	}[],
+	weeks: Weekdata[],
 	mails: LogtimeReport[],
 }
 
@@ -62,14 +64,14 @@ export class DataBase {
 		return (new Date(epoch)).toLocaleString('nl-NL', dateFormat)
 	}
 
-	#getWeekAndYear(epoch: number): [year: number, week: number] {
+	#getWeekAndYear(epoch: number): { year: number, week: number } {
 		let d = new Date(epoch)
 		d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))
 		d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7)) // make sunday's day number 7
 		const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1))
 		// @ts-ignore
 		const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7)
-		return [d.getUTCFullYear(), weekNo];
+		return { year: d.getUTCFullYear(), week: weekNo };
 	}
 
 	// weeknumber starts from 1
@@ -99,10 +101,12 @@ export class DataBase {
 	async addLogtimeReport(report: LogtimeReport): Promise<void> {
 		await this.#createIfUserDoesntExist(report.login)
 		const personData: DatabasePerson = this.#content[report.login]!
+		if (personData.mails.find(mail => mail.epoch == report.epoch))
+			return
 		if (report.epoch > personData.lastUpdate)
 			personData.lastUpdate = report.epoch
 
-		const [week, year] = this.#getWeekAndYear(report.epoch)
+		const { year, week } = this.#getWeekAndYear(report.epoch)
 		const weekData = personData.weeks.find(x => x.year === year && x.week === week)
 		if (!weekData)
 			personData.weeks.push({
@@ -120,13 +124,13 @@ export class DataBase {
 		const personData: DatabasePerson = this.#content[login]!
 		if (!personData)
 			return null
-		personData.weeks = personData.weeks.sort((a, b) => b.week - a.week) // last week first
+		const weeks = personData.weeks.sort((a, b) => b.week - a.week) // last week first
 		return {
 			lastUpdate: {
 				formatted: this.#formatEpoch(personData.lastUpdate),
 				timestamp: personData.lastUpdate
 			},
-			weeks: personData.weeks.map((week) => {
+			weeks: weeks.map((week) => {
 				console.log(week)
 				return {
 					week: week.week,
