@@ -21,7 +21,7 @@ interface Weekdata {
 interface PersonData {
 	lastUpdate: {
 		formatted: DateString,
-		timestamp: number,
+		timestamp: Date,
 	},
 	weeks: Weekdata[],
 	mails: LogtimeReport[],
@@ -49,7 +49,7 @@ export class DataBase {
 		await fs.promises.writeFile(this.filePath, JSON.stringify(this.#content))
 	}
 
-	#formatEpoch(epoch: number, hoursMinutes: boolean = true): DateString {
+	#formatDate(date: Date, hoursMinutes: boolean = true): DateString {
 		const dateFormat: Intl.DateTimeFormatOptions = {
 			weekday: 'short',
 			month: 'short',
@@ -61,11 +61,11 @@ export class DataBase {
 			dateFormat.hour = 'numeric'
 			dateFormat.minute = 'numeric'
 		}
-		return (new Date(epoch)).toLocaleString('nl-NL', dateFormat)
+		return date.toLocaleString('nl-NL', dateFormat).replace(/\.$/, '')
 	}
 
-	#getWeekAndYear(epoch: number): { year: number, week: number } {
-		let d = new Date(epoch)
+	#getWeekAndYear(date: Date): { year: number, week: number } {
+		let d = new Date(date)
 		d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))
 		d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7)) // make sunday's day number 7
 		const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1))
@@ -82,8 +82,8 @@ export class DataBase {
 		const start = new Date(w)
 		const end = new Date(w + 518400000)
 		return {
-			start: this.#formatEpoch(start.getTime(), false),
-			end: this.#formatEpoch(end.getTime(), false),
+			start: this.#formatDate(start, false),
+			end: this.#formatDate(end, false),
 		}
 	}
 
@@ -106,7 +106,7 @@ export class DataBase {
 		if (report.epoch > personData.lastUpdate)
 			personData.lastUpdate = report.epoch
 
-		const { year, week } = this.#getWeekAndYear(report.epoch)
+		const { year, week } = this.#getWeekAndYear(new Date(report.epoch))
 		const weekData = personData.weeks.find(x => x.year === year && x.week === week)
 		if (!weekData)
 			personData.weeks.push({
@@ -127,11 +127,10 @@ export class DataBase {
 		const weeks = personData.weeks.sort((a, b) => b.week - a.week) // last week first
 		return {
 			lastUpdate: {
-				formatted: this.#formatEpoch(personData.lastUpdate),
-				timestamp: personData.lastUpdate
+				formatted: this.#formatDate(new Date(personData.lastUpdate)),
+				timestamp: new Date(personData.lastUpdate)
 			},
 			weeks: weeks.map((week) => {
-				console.log(week)
 				return {
 					week: week.week,
 					...this.#getWeekRange(week.year, week.week),

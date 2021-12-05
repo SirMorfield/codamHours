@@ -1,7 +1,7 @@
 import { IntraLogin } from "./database"
 import { Mail } from "./getMails"
 
-type Hours = number
+export type Hours = number
 export interface LogtimeReport {
 	login: IntraLogin,
 	epoch: number,
