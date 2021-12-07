@@ -46,11 +46,20 @@ export namespace UI {
 		buildingTime: Hours
 		clusterTime: Hours
 	}
+	interface ThisWeek {
+		n: number
+		start: DateString
+		end: DateString
+		buildingTime: Hours
+		clusterTime: Hours
+	}
 	interface User {
+		login: IntraLogin
 		lastUpdate: {
 			formatted: DateString
 			timestamp: Date
 		}
+		thisWeek: DB.ThisWeek
 		weeks: UI.Weekdata[]
 		reports: UI.LogtimeReport[]
 	}

@@ -4,8 +4,6 @@ import session from 'express-session'
 import { v4 as uuid } from 'uuid'
 import { authenticate, passport, UserProfile } from './authentication'
 import { env } from "./env"
-import { getMails } from './db/getMails'
-import { Mail, DB } from "./types"
 import { DataBase } from './db/database'
 
 const app = express()
@@ -48,7 +46,10 @@ const dataBase = new DataBase("database.json");
 
 app.get('/', authenticate, async (req, res) => {
 	const user = req.user as UserProfile
-	res.send(dataBase.getPersonInfo(user.login))
+	const userData = dataBase.getPersonInfo(user.login)
+	if (!userData)
+		return res.redirect('/setup')
+	res.render('index.ejs', userData)
 })
 
 const port = process.env['PORT'] || 8080

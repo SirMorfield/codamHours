@@ -1,5 +1,5 @@
 import fs from 'fs'
-import { DB, UI, IntraLogin, DateString, MailID, Mail } from '../types'
+import { DB, UI, IntraLogin, DateString, MailID, Mail, Hours } from '../types'
 import * as mailer from './getMails'
 import { getLogtimeReport } from './getLogtimeReport'
 
@@ -98,6 +98,22 @@ export class DataBase {
 		await this.#syncToDisk()
 	}
 
+	#getThisWeek(weekDatas: UI.Weekdata[]): UI.ThisWeek {
+		const now = new Date()
+		const { week, year } = getWeekAndYear(now)
+		let times: { buildingTime: Hours, clusterTime: Hours }
+		const weekData = weekDatas.find(x => x.week == week && x.year == year)
+		if (weekData)
+			times = { buildingTime: weekData.buildingTime, clusterTime: weekData.clusterTime }
+		else
+			times = { buildingTime: 0, clusterTime: 0 }
+		return {
+			n: week,
+			...getWeekRange(now.getFullYear(), week),
+			...times,
+		}
+	}
+
 	getPersonInfo(login: IntraLogin): UI.User | null {
 		const reports: DB.LogtimeReport[] = this.#content.reports.filter(x => x.login == login)
 		const weekDatas = reportsToWeekdata(reports)
@@ -113,8 +129,10 @@ export class DataBase {
 				formatted: formatDate(lastUpdate, true),
 				timestamp: lastUpdate
 			},
+			thisWeek: this.#getThisWeek(weekDatas),
 			weeks: weekDatas,
-			reports: reports.map(report => toUIlogtimeReport(report))
+			reports: reports.map(report => toUIlogtimeReport(report)),
+			login
 		}
 	}
 
