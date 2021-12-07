@@ -1,5 +1,8 @@
 import fs from 'fs'
-import { DB, UI, IntraLogin, DateString } from '../types'
+import { DB, UI, IntraLogin, DateString, MailID, Mail } from '../types'
+import * as mailer from './getMails'
+import { getLogtimeReport } from './getLogtimeReport'
+
 
 function formatDate(date: Date, hoursMinutes: boolean = true): DateString {
 	const dateFormat: Intl.DateTimeFormatOptions = {
@@ -72,11 +75,13 @@ function toUIlogtimeReport(report: DB.LogtimeReport): UI.LogtimeReport {
 export class DataBase {
 	readonly filePath: fs.PathLike
 	#content: DB.Content
+	#isPullingMails: boolean
 
 	constructor(fileName: string) {
 		this.filePath = fileName
+		this.#isPullingMails = false
 		if (!fs.existsSync(this.filePath)) {
-			const emptyDB: DB.Content = { reports: [], forwardVerifications: [] }
+			const emptyDB: DB.Content = { reports: [], forwardVerifications: [], lastMailPull: 0 }
 			fs.writeFileSync(this.filePath, JSON.stringify(emptyDB))
 		}
 		this.#content = JSON.parse(fs.readFileSync(this.filePath).toString())!
@@ -85,7 +90,6 @@ export class DataBase {
 	async #syncToDisk() {
 		await fs.promises.writeFile(this.filePath, JSON.stringify(this.#content))
 	}
-
 
 	async addLogtimeReport(report: DB.LogtimeReport): Promise<void> {
 		if (this.#content.reports.find(x => x.mailID == report.mailID))
@@ -112,5 +116,23 @@ export class DataBase {
 			weeks: weekDatas,
 			reports: reports.map(report => toUIlogtimeReport(report))
 		}
+	}
+
+	async pullMails(ignorePullTimeout = false): Promise<void> { // TODO ignore mails that are not logtime reports
+		if (this.#isPullingMails)
+			return
+		if (!ignorePullTimeout && Date.now() - this.#content.lastMailPull < 30 * 1000)
+			return
+		this.#isPullingMails = true
+		this.#content.lastMailPull = Date.now()
+		const savedMails: MailID[] = this.#content.reports.map(report => report.mailID)
+		const mails: Mail[] = await mailer.getMails(savedMails) // TODO: paging
+		console.log('got', mails.length, 'mails')
+		for (const mail of mails) {
+			const report: DB.LogtimeReport | null = getLogtimeReport(mail)
+			if (report)
+				await this.addLogtimeReport(report)
+		}
+		this.#isPullingMails = false
 	}
 }

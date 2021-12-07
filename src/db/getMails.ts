@@ -1,13 +1,15 @@
-import fs from 'fs'
 import readline from 'readline'
-import { google } from 'googleapis'
+import { gmail_v1, google } from 'googleapis'
 import { OAuth2Client } from 'google-auth-library'
 import base64 from 'base-64'
-import { Mail } from '../types'
+import { Mail, MailID } from '../types'
+import fs from 'fs/promises'
 
+const fsExists = async path => !!(await fs.stat(path).catch(e => false))
 const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 const TOKEN_PATH = 'token.json'
 const CREDENTIALS_PATH = 'credentials.json'
+
 
 async function getNewToken(client): Promise<Object> {
 	const authUrl = client.generateAuthUrl({
@@ -30,43 +32,45 @@ async function getNewToken(client): Promise<Object> {
 }
 
 export async function getAuthClient(): Promise<OAuth2Client> {
-	const credentials = JSON.parse((await fs.promises.readFile(CREDENTIALS_PATH)).toString())
+	const credentials = JSON.parse((await fs.readFile(CREDENTIALS_PATH)).toString())
 	const { client_secret, client_id, redirect_uris } = credentials.web
 	const client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0])
 
 	let token
-	if (!fs.existsSync(TOKEN_PATH)) {
+	if (!(await fsExists(TOKEN_PATH))) {
 		token = getNewToken(client)
-		await fs.promises.writeFile(TOKEN_PATH, JSON.stringify(token))
+		await fs.writeFile(TOKEN_PATH, JSON.stringify(token))
 	}
 	else
-		token = JSON.parse((await fs.promises.readFile(TOKEN_PATH)).toString())
+		token = JSON.parse((await fs.readFile(TOKEN_PATH)).toString())
 	client.setCredentials(token)
 	return client
 }
 
-interface MailID {
+interface FullMailID {
 	id: string,
 	threadId: string,
 }
 
-export async function listIDs(auth: OAuth2Client, maxResults: number): Promise<MailID[]> {
-	const gmail = google.gmail({ version: 'v1', auth })
+export async function listIDs(gmail: gmail_v1.Gmail, maxResults?: number): Promise<FullMailID[]> {
 	return new Promise((resolve, reject) => {
-		gmail.users.messages.list({
+		let headers: gmail_v1.Params$Resource$Users$Messages$List = {
 			userId: 'me',
-			q: 'label:inbox',
-			maxResults
-		}, (err, res) => {
-			if (err)
-				reject(err)
-			resolve(res!.data.messages as MailID[] || []);
+			q: 'label:inbox'
+		}
+		if (maxResults)
+			headers.maxResults = maxResults
+		gmail.users.messages.list(headers, (err, res) => {
+			if (err) {
+				console.error(err)
+				resolve([])
+			}
+			resolve(res!.data.messages as FullMailID[] || []);
 		})
 	})
 }
 
-export async function getContent(auth: OAuth2Client, id: MailID): Promise<Mail | null> {
-	const gmail = google.gmail({ version: 'v1', auth })
+export async function getContent(gmail: gmail_v1.Gmail, id: FullMailID): Promise<Mail | null> {
 	return new Promise((resolve, reject) => {
 		gmail.users.messages.get({
 			userId: 'me',
@@ -98,15 +102,17 @@ export async function getContent(auth: OAuth2Client, id: MailID): Promise<Mail |
 	})
 }
 
-let auth
-export async function getMails(maxResults: number, ignore: string[] = []): Promise<Mail[]> {
-	if (!auth)
-		auth = await getAuthClient()
-	let IDs: MailID[] = await listIDs(auth, maxResults)
-	// IDs = IDs.filter(id => !ignore.includes(id.id))
+let gmail: gmail_v1.Gmail
+export async function getMails(ignore: MailID[] = [], maxResults?: number): Promise<Mail[]> {
+	if (!gmail)
+		gmail = google.gmail({ version: 'v1', auth: await getAuthClient() })
+	let IDs: FullMailID[] = await listIDs(gmail, maxResults)
+	IDs = IDs.filter(id => !ignore.includes(id.id))
 	const contents: Mail[] = []
 	for (const id of IDs) {
-		contents.push(await getContent(auth, id) as Mail) // TODO: protect?
+		const content: Mail | null = await getContent(gmail, id)
+		if (content)
+			contents.push(content) // TODO: protect?
 	}
 	// console.log('got', contents.length, 'mail contents')
 	return contents

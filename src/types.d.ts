@@ -3,9 +3,10 @@ export type Epoch = number // TODO
 export type IntraLogin = string
 export type DateString = string
 export type ISOdateString = string
+export type MailID = string
 
 export interface Mail {
-	id: string
+	id: MailID
 	content: string
 	from: string
 	d: Date
@@ -17,7 +18,7 @@ export namespace DB {
 		from: string
 	}
 	interface LogtimeReport {
-		mailID: string
+		mailID: MailID
 		from: string
 		d: ISOdateString
 		login: IntraLogin
@@ -27,6 +28,7 @@ export namespace DB {
 	interface Content {
 		reports: DB.LogtimeReport[]
 		forwardVerifications: DB.ForwardVerification[]
+		lastMailPull: Epoch
 	}
 }
 
