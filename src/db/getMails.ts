@@ -3,6 +3,7 @@ import readline from 'readline'
 import { google } from 'googleapis'
 import { OAuth2Client } from 'google-auth-library'
 import base64 from 'base-64'
+import { Mail } from '../types'
 
 const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 const TOKEN_PATH = 'token.json'
@@ -28,7 +29,7 @@ async function getNewToken(client): Promise<Object> {
 	})
 }
 
-async function getClient(): Promise<OAuth2Client> {
+export async function getAuthClient(): Promise<OAuth2Client> {
 	const credentials = JSON.parse((await fs.promises.readFile(CREDENTIALS_PATH)).toString())
 	const { client_secret, client_id, redirect_uris } = credentials.web
 	const client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0])
@@ -49,7 +50,7 @@ interface MailID {
 	threadId: string,
 }
 
-async function listIDs(auth: OAuth2Client, maxResults: number): Promise<MailID[]> {
+export async function listIDs(auth: OAuth2Client, maxResults: number): Promise<MailID[]> {
 	const gmail = google.gmail({ version: 'v1', auth })
 	return new Promise((resolve, reject) => {
 		gmail.users.messages.list({
@@ -64,13 +65,7 @@ async function listIDs(auth: OAuth2Client, maxResults: number): Promise<MailID[]
 	})
 }
 
-export interface Mail {
-	content: string,
-	from: string,
-	date: Date
-}
-
-async function getContent(auth: OAuth2Client, id: MailID): Promise<Mail | null> {
+export async function getContent(auth: OAuth2Client, id: MailID): Promise<Mail | null> {
 	const gmail = google.gmail({ version: 'v1', auth })
 	return new Promise((resolve, reject) => {
 		gmail.users.messages.get({
@@ -90,9 +85,10 @@ async function getContent(auth: OAuth2Client, id: MailID): Promise<Mail | null> 
 				const date = (payload.headers!.find(header => header.name == 'Date'))?.value || ''
 				// TODO: protect?
 				resolve({
+					id: id.id,
 					content: decoded,
 					from,
-					date: new Date(date)
+					d: new Date(date)
 				})
 			} catch (err) {
 				console.error(err)
@@ -103,10 +99,11 @@ async function getContent(auth: OAuth2Client, id: MailID): Promise<Mail | null> 
 }
 
 let auth
-export async function getMails(maxResults: number): Promise<Mail[]> {
+export async function getMails(maxResults: number, ignore: string[] = []): Promise<Mail[]> {
 	if (!auth)
-		auth = await getClient()
-	const IDs: MailID[] = await listIDs(auth, maxResults)
+		auth = await getAuthClient()
+	let IDs: MailID[] = await listIDs(auth, maxResults)
+	// IDs = IDs.filter(id => !ignore.includes(id.id))
 	const contents: Mail[] = []
 	for (const id of IDs) {
 		contents.push(await getContent(auth, id) as Mail) // TODO: protect?

@@ -1,47 +1,14 @@
 import fs from 'fs'
-import { LogtimeReport } from './addMailsToDatabase'
-
-interface DatabasePerson {
-	lastUpdate: number,
-	weeks: {
-		year: number,
-		week: number,
-		hours: number,
-	}[],
-	mails: LogtimeReport[]
-}
-
-interface Weekdata {
-	week: number,
-	start: DateString,
-	end: DateString,
-	hours: number,
-}
-
-interface PersonData {
-	lastUpdate: {
-		formatted: DateString,
-		timestamp: Date,
-	},
-	weeks: Weekdata[],
-	mails: LogtimeReport[],
-}
-
-interface DatabaseContent {
-	[key: string]: DatabasePerson
-}
-
-export type IntraLogin = string
-type DateString = string
+import { DB, UI, IntraLogin, DateString } from '../types'
 
 export class DataBase {
 	readonly filePath: fs.PathLike
-	#content: DatabaseContent
+	#content: DB.Content
 
 	constructor(fileName: string) {
 		this.filePath = fileName
 		if (!fs.existsSync(this.filePath))
-			fs.writeFileSync(this.filePath, '{}')
+			fs.writeFileSync(this.filePath, JSON.stringify({ reports: [], forwardVerifications: [] }))
 		this.#content = JSON.parse(fs.readFileSync(this.filePath).toString())!
 	}
 
@@ -87,57 +54,49 @@ export class DataBase {
 		}
 	}
 
-	async #createIfUserDoesntExist(login: IntraLogin) {
-		if (this.#content[login])
+	async addLogtimeReport(report: DB.LogtimeReport): Promise<void> {
+		if (this.#content.reports.find(x => x.mailID == report.mailID))
 			return
-		this.#content[login] = {
-			lastUpdate: Date.now(),
-			weeks: [],
-			mails: []
+		this.#content.reports.push(report)
+		await this.#syncToDisk()
+	}
+
+	#toUIlogtimeReport(report: DB.LogtimeReport): UI.LogtimeReport {
+		return {
+			date: this.#formatDate(new Date(report.d), true),
+			buildingTime: report.buildingTime,
+			clusterTime: report.clusterTime,
 		}
-		await this.#syncToDisk()
 	}
 
-	async addLogtimeReport(report: LogtimeReport): Promise<void> {
-		await this.#createIfUserDoesntExist(report.login)
-		const personData: DatabasePerson = this.#content[report.login]!
-		if (personData.mails.find(mail => mail.epoch == report.epoch))
-			return
-		if (report.epoch > personData.lastUpdate)
-			personData.lastUpdate = report.epoch
+	getPersonInfo(login: IntraLogin): UI.User | null {
+		const reports: DB.LogtimeReport[] = this.#content.reports.filter(x => x.login == login)
+		let weekDatas: UI.Weekdata[] = []
+		for (const report of reports) {
+			const { year, week } = this.#getWeekAndYear(new Date(report.d))
+			const weekData = weekDatas.find(x => x.year === year && x.week === week)
+			if (!weekData)
+				weekDatas.push({
+					year,
+					week,
+					...this.#getWeekRange(year, week),
+					buildingTime: report.buildingTime,
+					clusterTime: report.clusterTime,
+				})
+			else {
+				weekData.buildingTime += report.buildingTime
+				weekData.clusterTime += report.clusterTime
+			}
+		}
+		weekDatas = weekDatas.sort((a, b) => b.week - a.week) // last week first
 
-		const { year, week } = this.#getWeekAndYear(new Date(report.epoch))
-		const weekData = personData.weeks.find(x => x.year === year && x.week === week)
-		if (!weekData)
-			personData.weeks.push({
-				week: week,
-				year: year,
-				hours: report.buildingTime,
-			})
-		else
-			weekData.hours += report.buildingTime
-		personData.mails.push(report)
-		await this.#syncToDisk()
-	}
-
-	getPersonInfo(login: IntraLogin): PersonData | null {
-		const personData: DatabasePerson = this.#content[login]!
-		if (!personData)
-			return null
-		const weeks = personData.weeks.sort((a, b) => b.week - a.week) // last week first
 		return {
 			lastUpdate: {
-				formatted: this.#formatDate(new Date(personData.lastUpdate)),
-				timestamp: new Date(personData.lastUpdate)
+				formatted: 'never',
+				timestamp: new Date()
 			},
-			weeks: weeks.map((week) => {
-				return {
-					week: week.week,
-					...this.#getWeekRange(week.year, week.week),
-					hours: week.hours,
-				}
-			}),
-			mails: personData.mails,
+			weeks: weekDatas,
+			reports: reports.map(report => this.#toUIlogtimeReport(report))
 		}
 	}
 }
