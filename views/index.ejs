@@ -5,11 +5,139 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Codam hours</title>
+	<style>
+		:root {
+			color-scheme: dark;
+			font-family: 'arial';
+		}
+		
+		tr { border: none; }
+		td {
+			text-align: left;
+			/* padding-left: 20px; */
+			padding-right: 50px;
+			/* border-left: solid 1px rgb(255, 255, 255);  */
+			border-left: none;
+
+			border-right: none;
+		}
+		caption {
+			text-align: left; 
+			text-size-adjust: 200%;
+		}
+	</style>
 </head>
 
 <body>
 
 </body>
-Hello world
+<h1>This website is still in Alpha</h1>
+<h6>
+	Hosted and build by Joppe Koers
+</h6>
 
+
+<table>
+	<caption>This week</caption>
+	<tr style="color:rgb(180, 0, 0)">
+		<td>in building</td>
+		<td>
+			<%= thisWeek.buildingTime.toFixed(2) %> hours
+		</td>
+
+	</tr>
+	<tr style="color:rgb(180, 0, 0)">
+		<td>in cluster</td>
+		<td>
+			<%= thisWeek.clusterTime.toFixed(2) %> hours
+		</td>
+	</tr>
+	<tr>
+		<td>User</td>
+		<td><%= login %></td>
+	</tr>
+	<tr>
+	<tr>
+		<td>week</td>
+		<td>
+			<%= thisWeek.n %>
+		</td>
+	</tr>
+		<td>Last logtime report was received on</td>
+		<td><%= lastUpdate.formatted %></td>
+	</tr>
+	<tr>
+		<td>Current week</td>
+		<td><%= thisWeek.n %>, <%= thisWeek.start %> to <%= thisWeek.end %></td>
+	</tr>
+</table>
+<br>
+
+<% if (reports.length==0) { %>
+	Server has not recieved any logtime reports<br>
+	Go to <a href="/setup">setup</a> to see how you can forward your logtime report
+<% } %>
+
+
+<table>
+	<caption>Week history</caption>
+	<tr>
+		<td>year</td>
+		<td>week</td>
+		<td>start</td>
+		<td>end</td>
+		<td>hours in building</td>
+		<td>hours in cluster</td>
+	</tr>
+
+	<% weeks.forEach(week=>{ %>
+		<tr>
+			<td>
+				<%= week.year %>
+			</td>
+			<td>
+				<%= week.week %>
+			</td>
+			<td>
+				<%= week.start %>
+			</td>
+			<td>
+				<%= week.end %>
+			</td>
+			<td>
+				<%= week.buildingTime.toFixed(2) %>
+			</td>
+			<td>
+				<%= week.clusterTime.toFixed(2) %>
+			</td>
+		</tr>
+		<% }) %>
+</table>
+<br>
+<table>
+	<caption>Parsed from these mails</caption>
+	<tr>
+		<td>date</td>
+		<td>in building</td>
+		<td>in cluster</td>
+	</tr>
+	<% reports.forEach(report=>{ %>
+		<tr>
+			<td>
+				<%= report.date %>
+			</td>
+			<td>
+				<%= report.buildingTime.toFixed(2) %>
+			</td>
+			<td>
+				<%= report.clusterTime.toFixed(2) %>
+			</td>
+		</tr>
+		<% }); %>
+</table>
+<br>
+
+<footer>
+	<a href="https://github.com/SirMorfield/codamHours">Source</a>
+</footer>
 </html>
