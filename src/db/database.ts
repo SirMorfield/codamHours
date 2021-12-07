@@ -39,14 +39,46 @@ function getWeekRange(year: number, week: number): { start: DateString, end: Dat
 	}
 }
 
+function reportsToWeekdata(reports: DB.LogtimeReport[]): UI.Weekdata[] {
+	let weekDatas: UI.Weekdata[] = []
+	for (const report of reports) {
+		const { year, week } = getWeekAndYear(new Date(report.d))
+		const weekData = weekDatas.find(x => x.year === year && x.week === week)
+		if (!weekData)
+			weekDatas.push({
+				year,
+				week,
+				...getWeekRange(year, week),
+				buildingTime: report.buildingTime,
+				clusterTime: report.clusterTime,
+			})
+		else {
+			weekData.buildingTime += report.buildingTime
+			weekData.clusterTime += report.clusterTime
+		}
+	}
+	weekDatas = weekDatas.sort((a, b) => b.week - a.week) // last week first
+	return weekDatas
+}
+
+function toUIlogtimeReport(report: DB.LogtimeReport): UI.LogtimeReport {
+	return {
+		date: formatDate(new Date(report.d), false),
+		buildingTime: report.buildingTime,
+		clusterTime: report.clusterTime,
+	}
+}
+
 export class DataBase {
 	readonly filePath: fs.PathLike
 	#content: DB.Content
 
 	constructor(fileName: string) {
 		this.filePath = fileName
-		if (!fs.existsSync(this.filePath))
-			fs.writeFileSync(this.filePath, JSON.stringify({ reports: [], forwardVerifications: [] }))
+		if (!fs.existsSync(this.filePath)) {
+			const emptyDB: DB.Content = { reports: [], forwardVerifications: [] }
+			fs.writeFileSync(this.filePath, JSON.stringify(emptyDB))
+		}
 		this.#content = JSON.parse(fs.readFileSync(this.filePath).toString())!
 	}
 
@@ -54,13 +86,6 @@ export class DataBase {
 		await fs.promises.writeFile(this.filePath, JSON.stringify(this.#content))
 	}
 
-	#toUIlogtimeReport(report: DB.LogtimeReport): UI.LogtimeReport {
-		return {
-			date: formatDate(new Date(report.d), false),
-			buildingTime: report.buildingTime,
-			clusterTime: report.clusterTime,
-		}
-	}
 
 	async addLogtimeReport(report: DB.LogtimeReport): Promise<void> {
 		if (this.#content.reports.find(x => x.mailID == report.mailID))
@@ -71,32 +96,21 @@ export class DataBase {
 
 	getPersonInfo(login: IntraLogin): UI.User | null {
 		const reports: DB.LogtimeReport[] = this.#content.reports.filter(x => x.login == login)
-		let weekDatas: UI.Weekdata[] = []
-		for (const report of reports) {
-			const { year, week } = getWeekAndYear(new Date(report.d))
-			const weekData = weekDatas.find(x => x.year === year && x.week === week)
-			if (!weekData)
-				weekDatas.push({
-					year,
-					week,
-					...getWeekRange(year, week),
-					buildingTime: report.buildingTime,
-					clusterTime: report.clusterTime,
-				})
-			else {
-				weekData.buildingTime += report.buildingTime
-				weekData.clusterTime += report.clusterTime
-			}
-		}
-		weekDatas = weekDatas.sort((a, b) => b.week - a.week) // last week first
+		const weekDatas = reportsToWeekdata(reports)
 
+		let lastUpdate = new Date(0)
+		for (const report of reports) {
+			const d = new Date(report.d)
+			if (d > lastUpdate)
+				lastUpdate = d
+		}
 		return {
 			lastUpdate: {
-				formatted: 'never',
-				timestamp: new Date()
+				formatted: formatDate(lastUpdate, true),
+				timestamp: lastUpdate
 			},
 			weeks: weekDatas,
-			reports: reports.map(report => this.#toUIlogtimeReport(report))
+			reports: reports.map(report => toUIlogtimeReport(report))
 		}
 	}
 }
