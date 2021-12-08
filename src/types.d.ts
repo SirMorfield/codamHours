@@ -1,8 +1,14 @@
-export type Hours = number
-export type Epoch = number // TODO
 export type IntraLogin = string
-export type DateString = string
-export type ISOdateString = string
+
+export namespace Time {
+	type Date = string
+	type ISO = string
+	type DayTime = string
+	type Epoch = number
+	type Hours = number
+
+}
+
 export type MailID = string
 
 export interface Mail {
@@ -20,15 +26,15 @@ export namespace DB {
 	interface LogtimeReport {
 		mailID: MailID
 		from: string
-		d: ISOdateString
+		d: Time.ISO
 		login: IntraLogin
-		buildingTime: Hours
-		clusterTime: Hours
+		buildingTime: Time.Hours
+		clusterTime: Time.Hours
 	}
 	interface Content {
 		reports: DB.LogtimeReport[]
 		forwardVerifications: DB.ForwardVerification[]
-		lastMailPull: Epoch
+		lastMailPull: Time.Epoch
 	}
 }
 
@@ -36,27 +42,27 @@ export namespace UI {
 	interface Weekdata {
 		year: number
 		week: number
-		start: DateString
-		end: DateString
-		buildingTime: Hours
-		clusterTime: Hours
+		start: Time.Date
+		end: Time.Date
+		buildingTime: Time.Hours
+		clusterTime: Time.Hours
 	}
 	interface LogtimeReport {
-		date: DateString
-		buildingTime: Hours
-		clusterTime: Hours
+		date: Time.Date
+		buildingTime: Time.Hours
+		clusterTime: Time.Hours
 	}
 	interface ThisWeek {
 		n: number
-		start: DateString
-		end: DateString
-		buildingTime: Hours
-		clusterTime: Hours
+		start: Time.Date
+		end: Time.Date
+		buildingTime: Time.Hours
+		clusterTime: Time.Hours
 	}
 	interface User {
 		login: IntraLogin
 		lastUpdate: {
-			formatted: DateString
+			formatted: Time.Date
 			timestamp: Date
 		}
 		thisWeek: DB.ThisWeek

@@ -1,10 +1,10 @@
-import { DB, IntraLogin, Mail } from '../types'
+import { DB, IntraLogin, Mail, Time } from '../types'
 // const year = parseInt(m.content.match(/(?<=For )\d+/)![0]!)
 // const month = parseInt(m.content.match(/(?<=(For \d\d\d\d)-)\d\d/)![0]!)
 // const day = parseInt(m.content.match(/(?<=(For \d\d\d\d)-\d\d-)\d\d/)![0]!)
 // if (!isFinite(year) || !isFinite(month) || !isFinite(day))
 // 	return null
-function getHours(timeStr: string | undefined): number {
+function getHours(timeStr: string | undefined): Time.Hours {
 	if (!timeStr)
 		return 0
 

@@ -1,10 +1,10 @@
 import fs from 'fs'
-import { DB, UI, IntraLogin, DateString, MailID, Mail, Hours } from '../types'
+import { DB, UI, IntraLogin, Time, MailID, Mail } from '../types'
 import * as mailer from './getMails'
 import { getLogtimeReport } from './getLogtimeReport'
 
 
-function formatDate(date: Date, hoursMinutes: boolean = true): DateString {
+function formatDate(date: Date, hoursMinutes: boolean = true): Time.Date {
 	const dateFormat: Intl.DateTimeFormatOptions = {
 		weekday: 'short',
 		month: 'short',
@@ -30,7 +30,7 @@ function getWeekAndYear(date: Date): { year: number, week: number } {
 }
 
 // weeknumber starts from 1
-function getWeekRange(year: number, week: number): { start: DateString, end: DateString } {
+function getWeekRange(year: number, week: number): { start: Time.Date, end: Time.Date } {
 	const d = new Date("Jan 01, " + year + " 01:00:00")
 	const firstDay = new Date(year, 0, 1).getDay();
 	const w = d.getTime() - (3600000 * 24 * (firstDay - 1)) + 604800000 * (week - 1)
@@ -101,7 +101,7 @@ export class DataBase {
 	#getThisWeek(weekDatas: UI.Weekdata[]): UI.ThisWeek {
 		const now = new Date()
 		const { week, year } = getWeekAndYear(now)
-		let times: { buildingTime: Hours, clusterTime: Hours }
+		let times: { buildingTime: Time.Hours, clusterTime: Time.Hours }
 		const weekData = weekDatas.find(x => x.week == week && x.year == year)
 		if (weekData)
 			times = { buildingTime: weekData.buildingTime, clusterTime: weekData.clusterTime }
