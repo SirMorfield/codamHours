@@ -4,12 +4,11 @@ import { OAuth2Client } from 'google-auth-library'
 import base64 from 'base-64'
 import { Mail, MailID } from '../types'
 import fs from 'fs/promises'
+import { env } from '../env'
 
 const fsExists = async path => !!(await fs.stat(path).catch(e => false))
 const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
-const TOKEN_PATH = 'token.json'
-const CREDENTIALS_PATH = 'credentials.json'
-
+const TOKEN_PATH = `${env.envDir}/token.json`
 
 async function getNewToken(client): Promise<Object> {
 	const authUrl = client.generateAuthUrl({
@@ -32,8 +31,7 @@ async function getNewToken(client): Promise<Object> {
 }
 
 export async function getAuthClient(): Promise<OAuth2Client> {
-	const credentials = JSON.parse((await fs.readFile(CREDENTIALS_PATH)).toString())
-	const { client_secret, client_id, redirect_uris } = credentials.web
+	const { client_secret, client_id, redirect_uris } = env.web
 	const client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0])
 
 	let token

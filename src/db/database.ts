@@ -16,7 +16,7 @@ function formatDate(date: Date, hoursMinutes: boolean = true): Time.Date {
 		dateFormat.hour = 'numeric'
 		dateFormat.minute = 'numeric'
 	}
-	return date.toLocaleString('nl-NL', dateFormat).replace(/\.$/, '')
+	return date.toLocaleString('nl-NL', dateFormat).replace(/\./, '')
 }
 
 function getWeekAndYear(date: Date): { year: number, week: number } {
@@ -143,7 +143,7 @@ export class DataBase {
 			return
 		this.#isPullingMails = true
 		this.#content.lastMailPull = Date.now()
-		const savedMails: MailID[] = this.#content.reports.map(report => report.mailID)
+		const savedMails: MailID[] = this.#content.reports.map(report => report.mailID) // TODO also ignore ForwardVerification
 		const mails: Mail[] = await mailer.getMails(savedMails) // TODO: paging
 		console.log('got', mails.length, 'mails')
 		for (const mail of mails) {

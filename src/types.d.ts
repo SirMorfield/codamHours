@@ -1,12 +1,11 @@
 export type IntraLogin = string
 
 export namespace Time {
-	type Date = string
-	type ISO = string
-	type DayTime = string
-	type Epoch = number
-	type Hours = number
-
+	type Date = string 		// ma 4 okt
+	type ISO = string 		// 2021-12-08T21:57:09.019Z
+	type DayTime = string	// ma 4 okt 17:11
+	type Epoch = number		// 1639000672586
+	type Hours = number		// 5.5
 }
 
 export type MailID = string

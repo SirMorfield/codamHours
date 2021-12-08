@@ -1,8 +1,7 @@
 /build/
 .DS_Store
 /test.js
-node_modules/
-env.json
+/node_modules/
 /database.json
-/credentials.json
 /token.json
+/env
