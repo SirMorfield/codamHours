@@ -4,19 +4,31 @@ import { DB, IntraLogin, Mail } from '../types'
 // const day = parseInt(m.content.match(/(?<=(For \d\d\d\d)-\d\d-)\d\d/)![0]!)
 // if (!isFinite(year) || !isFinite(month) || !isFinite(day))
 // 	return null
+function getHours(timeStr: string | undefined): number {
+	if (!timeStr)
+		return 0
+
+	const timeNum = timeStr.split(':').map(n => parseInt(n)) // TODO
+	let hours
+	if (timeNum.length == 3)
+		hours = timeNum[0]! + timeNum[1]! / 60 + timeNum[1]! / 60 / 60
+	else
+		hours = 0
+	if (!isFinite(hours))
+		hours = 0
+	return hours
+}
 
 export function getLogtimeReport(m: Mail): DB.LogtimeReport | null {
 	try {
-		const login = m.content.match(/(?<=Dear )\w+/)![0] as IntraLogin
+		const login = m.content.match(/(?<=Dear )\S+/)![0] as IntraLogin
 		const d = (new Date(m.content.match(/(?<=For )\d{4}-\d{1,2}-\d{1,2}/)![0]!)).toISOString() // TODO: offset ??
 
-		const [hours, minutes, seconds] = m.content.match(/(?<=presence in building )\d{1,2}:\d{1,2}:\d{1,2}/)![0]!.split(':').map(n => parseInt(n)) // TODO
-		const buildingTime = hours! + minutes! / 60 + seconds! / 60 / 60
-		const [hours1, minutes1, seconds1] = m.content.match(/(?<=presence logged on cluster )\d{1,2}:\d{1,2}:\d{1,2}/)![0]!.split(':').map(n => parseInt(n))
-		const clusterTime = hours1! + minutes1! / 60 + seconds1! / 60 / 60
-		if (!isFinite(buildingTime) || !isFinite(clusterTime))
-			return null
+		const buildingStr = m.content.match(/(?<=presence in building:? )\S+/im) || []
+		const buildingTime = getHours(buildingStr[0])
 
+		const clusterStr = m.content.match(/(?<=presence logged on cluster:? )\S+/im) || []
+		const clusterTime = getHours(clusterStr[0])
 		return {
 			mailID: m.id,
 			from: m.from,
