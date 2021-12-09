@@ -33,4 +33,3 @@ export const env: Env = {
 	...JSON.parse(fs.readFileSync('./env/credentials.json').toString()),
 	envDir: './env/'
 }
-console.log(env)

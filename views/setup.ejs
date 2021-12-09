@@ -1,0 +1,65 @@
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Forward verification codes</title>
+	<style>
+		:root {
+			color-scheme: dark;
+			font-family: 'arial';
+		}
+
+		tr {
+			border: none;
+		}
+
+		td {
+			text-align: left;
+			/* padding-left: 20px; */
+			padding-right: 50px;
+			/* border-left: solid 1px rgb(255, 255, 255);  */
+			border-left: none;
+
+			border-right: none;
+		}
+
+		body {
+			padding: 100px;
+		}
+
+		caption {
+			text-align: left;
+			text-size-adjust: 200%;
+		}
+	</style>
+	<script>
+		// I will not accept snarky comments about this
+		setTimeout(() => location.reload(), 3000)
+	</script>
+</head>
+
+<body>
+	<p>Enable automatic forwarding from <code>no-reply@student.codam.nl</code> to <code>codamhours@gmail.com</code> in your mailing application or website</p>
+	<p>It will ask for an verification code that will appear below (This may take several minutes)</p>
+	<table>
+		<caption>Forward verification codes</caption>
+		<tr>
+			<td>Code</td>
+			<td>Email</td>
+		</tr>
+		<% forwardVerifications.forEach(f=>{ %>
+			<tr>
+				<td>
+					<%= f.code %>
+				</td>
+				<td>
+					<%= f.from %>
+				</td>
+			</tr>
+			<% }) %>
+	</table>
+</body>
+
+</html>

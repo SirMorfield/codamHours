@@ -2,7 +2,7 @@ import fs from 'fs'
 import { DB, UI, IntraLogin, Time, MailID, Mail } from '../types'
 import * as mailer from './getMails'
 import { getLogtimeReport } from './getLogtimeReport'
-
+import { getForwardVerification } from './getForwardVerification'
 
 function formatDate(date: Date, hoursMinutes: boolean = true): Time.Date {
 	const dateFormat: Intl.DateTimeFormatOptions = {
@@ -98,6 +98,13 @@ export class DataBase {
 		await this.#syncToDisk()
 	}
 
+	async addForwardVerification(verfication: DB.ForwardVerification): Promise<void> {
+		if (this.#content.reports.find(x => x.mailID == verfication.mailID))
+			return
+		this.#content.forwardVerifications.push(verfication)
+		await this.#syncToDisk()
+	}
+
 	#getThisWeek(weekDatas: UI.Weekdata[]): UI.ThisWeek {
 		const now = new Date()
 		const { week, year } = getWeekAndYear(now)
@@ -136,6 +143,12 @@ export class DataBase {
 		}
 	}
 
+	#savedMails(): MailID[] {
+		const reports = this.#content.reports.map(report => report.mailID)
+		const forwardVerifications = this.#content.forwardVerifications.map(x => x.mailID)
+		return reports.concat(forwardVerifications)
+	}
+
 	async pullMails(ignorePullTimeout = false): Promise<void> { // TODO ignore mails that are not logtime reports
 		if (this.#isPullingMails)
 			return
@@ -143,14 +156,25 @@ export class DataBase {
 			return
 		this.#isPullingMails = true
 		this.#content.lastMailPull = Date.now()
-		const savedMails: MailID[] = this.#content.reports.map(report => report.mailID) // TODO also ignore ForwardVerification
-		const mails: Mail[] = await mailer.getMails(savedMails) // TODO: paging
-		console.log('got', mails.length, 'mails')
+
+		const mails: Mail[] = await mailer.getMails(this.#savedMails()) // TODO: paging
 		for (const mail of mails) {
 			const report: DB.LogtimeReport | null = getLogtimeReport(mail)
-			if (report)
+			if (report) {
 				await this.addLogtimeReport(report)
+				continue
+			}
+			const verification: DB.ForwardVerification | null = getForwardVerification(mail)
+			if (verification) {
+				this.addForwardVerification(verification)
+				continue
+			}
+			// console.log('could not parse mail', mail) // TODO
 		}
 		this.#isPullingMails = false
+	}
+
+	getForwardVerification(): { code, from }[] {
+		return this.#content.forwardVerifications.map(f => { return { code: f.code, from: f.from } }) // TODO sort most recent first
 	}
 }

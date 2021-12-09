@@ -52,5 +52,12 @@ app.get('/', authenticate, async (req, res) => {
 	res.render('index.ejs', userData)
 })
 
+app.get('/setup', authenticate, async (req, res) => {
+	const data = {
+		forwardVerifications: dataBase.getForwardVerification()
+	}
+	res.render('setup.ejs', data)
+})
+
 const port = process.env['PORT'] || 8080
 app.listen(port, () => console.log('app ready on port', port))

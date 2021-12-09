@@ -21,6 +21,7 @@ export namespace DB {
 	interface ForwardVerification {
 		code: string
 		from: string
+		mailID: MailID
 	}
 	interface LogtimeReport {
 		mailID: MailID
