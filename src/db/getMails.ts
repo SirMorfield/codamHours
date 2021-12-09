@@ -83,7 +83,10 @@ export async function getContent(gmail: gmail_v1.Gmail, id: FullMailID): Promise
 				const payload = res!.data!.payload!
 				const body: string = payload.parts ? payload.parts[0]!.body!.data! : payload.body!.data!
 				let decoded = base64.decode(body.replace(/-/g, '+').replace(/_/g, '/'))
-				const from = (payload.headers!.find(header => header.name == 'From'))?.value || ''
+				// converting 'Bob Bye <bob.bye@gmai.com>' to 'bob.bye@gmai.com'
+				let from = (payload.headers!.find(header => header.name == 'From'))?.value || ''
+				if (from.match(/(?<=<)\S+(?=>)/))
+					from = from.match(/(?<=<)\S+(?=>)/)![0]!
 				const date = (payload.headers!.find(header => header.name == 'Date'))?.value || ''
 				// TODO: protect?
 				resolve({
@@ -104,6 +107,7 @@ let gmail: gmail_v1.Gmail
 export async function getMails(ignore: MailID[] = [], maxResults?: number): Promise<Mail[]> {
 	if (!gmail)
 		gmail = google.gmail({ version: 'v1', auth: await getAuthClient() })
+	console.log('getting mails')
 	let IDs: FullMailID[] = await listIDs(gmail, maxResults)
 	IDs = IDs.filter(id => !ignore.includes(id.id))
 	const contents: Mail[] = []
@@ -112,6 +116,6 @@ export async function getMails(ignore: MailID[] = [], maxResults?: number): Prom
 		if (content)
 			contents.push(content) // TODO: protect?
 	}
-	// console.log('got', contents.length, 'mail contents')
+	console.log('got', contents.length, 'mail contents')
 	return contents
 }
