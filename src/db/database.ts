@@ -92,6 +92,7 @@ export class DataBase {
 	}
 
 	async addLogtimeReport(report: DB.LogtimeReport): Promise<void> {
+		this.#content.failedParse = this.#content.failedParse.filter(f => f.id != report.mailID)
 		if (this.#content.reports.find(x => x.mailID == report.mailID))
 			return
 		this.#content.reports.push(report)
@@ -99,6 +100,7 @@ export class DataBase {
 	}
 
 	async addForwardVerification(verfication: DB.ForwardVerification): Promise<void> {
+		this.#content.failedParse = this.#content.failedParse.filter(f => f.id != verfication.mailID)
 		if (this.#content.reports.find(x => x.mailID == verfication.mailID))
 			return
 		this.#content.forwardVerifications.push(verfication)

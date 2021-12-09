@@ -14,6 +14,7 @@ export interface Mail {
 	id: MailID
 	content: string
 	from: string
+	subject: string
 	d: Date
 }
 

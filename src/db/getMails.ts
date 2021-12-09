@@ -88,11 +88,13 @@ export async function getContent(gmail: gmail_v1.Gmail, id: FullMailID): Promise
 				if (from.match(/(?<=<)\S+(?=>)/))
 					from = from.match(/(?<=<)\S+(?=>)/)![0]!
 				const date = (payload.headers!.find(header => header.name == 'Date'))?.value || ''
+				const subject = (payload.headers!.find(header => header.name == 'Subject'))?.value || ''
 				// TODO: protect?
 				resolve({
 					id: id.id,
 					content: decoded,
 					from,
+					subject,
 					d: new Date(date)
 				})
 			} catch (err) {
