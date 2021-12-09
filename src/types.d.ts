@@ -34,6 +34,7 @@ export namespace DB {
 	interface Content {
 		reports: DB.LogtimeReport[]
 		forwardVerifications: DB.ForwardVerification[]
+		failedParse: Mail[]
 		lastMailPull: Time.Epoch
 	}
 }

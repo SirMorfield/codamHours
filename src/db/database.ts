@@ -81,7 +81,7 @@ export class DataBase {
 		this.filePath = fileName
 		this.#isPullingMails = false
 		if (!fs.existsSync(this.filePath)) {
-			const emptyDB: DB.Content = { reports: [], forwardVerifications: [], lastMailPull: 0 }
+			const emptyDB: DB.Content = { reports: [], forwardVerifications: [], failedParse: [], lastMailPull: 0 }
 			fs.writeFileSync(this.filePath, JSON.stringify(emptyDB))
 		}
 		this.#content = JSON.parse(fs.readFileSync(this.filePath).toString())!
@@ -145,8 +145,9 @@ export class DataBase {
 
 	#savedMails(): MailID[] {
 		const reports = this.#content.reports.map(report => report.mailID)
-		const forwardVerifications = this.#content.forwardVerifications.map(x => x.mailID)
-		return reports.concat(forwardVerifications)
+		const verifications = this.#content.forwardVerifications.map(x => x.mailID)
+		const failedParse = this.#content.failedParse.map(x => x.id)
+		return [...reports, ...verifications, ...failedParse]
 	}
 
 	async pullMails(ignorePullTimeout = false): Promise<void> { // TODO ignore mails that are not logtime reports
@@ -169,12 +170,16 @@ export class DataBase {
 				this.addForwardVerification(verification)
 				continue
 			}
+			this.#content.failedParse.push(mail)
+			await this.#syncToDisk()
 			// console.log('could not parse mail', mail) // TODO
 		}
 		this.#isPullingMails = false
 	}
 
 	getForwardVerification(): { code, from }[] {
-		return this.#content.forwardVerifications.map(f => { return { code: f.code, from: f.from } }) // TODO sort most recent first
+		// only show mails of people that have not forwarded a logtime report mail
+		const verifications = this.#content.forwardVerifications.filter(f => this.#content.reports.find(r => r.mailID == f.mailID))
+		return verifications.map(f => { return { code: f.code, from: f.from } }) // TODO sort most recent first
 	}
 }
