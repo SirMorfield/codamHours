@@ -1,4 +1,4 @@
-import { env } from '../env'
+// import { env } from '../env'
 import { DB, IntraLogin, Mail, Time } from '../types'
 // const year = parseInt(m.content.match(/(?<=For )\d+/)![0]!)
 // const month = parseInt(m.content.match(/(?<=(For \d\d\d\d)-)\d\d/)![0]!)

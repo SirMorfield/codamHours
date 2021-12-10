@@ -2,3 +2,4 @@
 /Dockerfile*
 /.git/
 /node_modules/
+/build/
