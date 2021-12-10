@@ -72,6 +72,15 @@ function toUIlogtimeReport(report: DB.LogtimeReport): UI.LogtimeReport {
 	}
 }
 
+function censorEmail(email: string): string { // abcdef@gmail.com --> ab****@gmail.com
+	return email.replace(/(.{2})(.*)(?=@)/,
+		(gp1, gp2, gp3) => {
+			for (let i = 0; i < gp3.length; i++) {
+				gp2 += "*"
+			} return gp2
+		});
+}
+
 export class DataBase {
 	readonly filePath: fs.PathLike
 	#content: DB.Content
@@ -92,8 +101,8 @@ export class DataBase {
 	}
 
 	async addLogtimeReport(report: DB.LogtimeReport): Promise<void> {
-		this.#content.failedParse = this.#content.failedParse.filter(f => f.id != report.mailID)
-		if (this.#content.reports.find(x => x.mailID == report.mailID))
+		this.#content.failedParse = this.#content.failedParse.filter(f => f.id != report.mail.id)
+		if (this.#content.reports.find(x => x.mail.id == report.mail.id))
 			return
 		this.#content.reports.push(report)
 		await this.#syncToDisk()
@@ -101,7 +110,7 @@ export class DataBase {
 
 	async addForwardVerification(verfication: DB.ForwardVerification): Promise<void> {
 		this.#content.failedParse = this.#content.failedParse.filter(f => f.id != verfication.mailID)
-		if (this.#content.reports.find(x => x.mailID == verfication.mailID))
+		if (this.#content.reports.find(x => x.mail.id == verfication.mailID))
 			return
 		this.#content.forwardVerifications.push(verfication)
 		await this.#syncToDisk()
@@ -129,7 +138,7 @@ export class DataBase {
 
 		let lastUpdate = new Date(0)
 		for (const report of reports) {
-			const d = new Date(report.d)
+			const d = new Date(report.mail.d)
 			if (d > lastUpdate)
 				lastUpdate = d
 		}
@@ -146,7 +155,7 @@ export class DataBase {
 	}
 
 	#savedMails(): MailID[] {
-		const reports = this.#content.reports.map(report => report.mailID)
+		const reports = this.#content.reports.map(report => report.mail.id)
 		const verifications = this.#content.forwardVerifications.map(x => x.mailID)
 		const failedParse = this.#content.failedParse.map(x => x.id)
 		return [...reports, ...verifications, ...failedParse]
@@ -180,8 +189,7 @@ export class DataBase {
 	}
 
 	getForwardVerification(): { code, from }[] {
-		// only show mails of people that have not forwarded a logtime report mail
-		const verifications = this.#content.forwardVerifications.filter(f => this.#content.reports.find(r => r.mailID == f.mailID))
-		return verifications.map(f => { return { code: f.code, from: f.from } }) // TODO sort most recent first
+		this.#content.forwardVerifications.sort((a, b) => (new Date(b.d)).getTime() - (new Date(a.d)).getTime()) // last email first
+		return this.#content.forwardVerifications.map(f => { return { code: f.code, from: censorEmail(f.from) } })
 	}
 }

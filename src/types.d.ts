@@ -2,11 +2,12 @@ export type IntraLogin = string
 
 export namespace Time {
 	type Date = string 		// ma 4 okt
-	type ISO = string 		// 2021-12-08T21:57:09.019Z
+	type ISOstring = string // "2021-12-08T21:57:09.019Z"
 	type DayTime = string	// ma 4 okt 17:11
 	type Epoch = number		// 1639000672586
 	type Hours = number		// 5.5
 }
+
 
 export type MailID = string
 
@@ -23,11 +24,15 @@ export namespace DB {
 		code: string
 		from: string
 		mailID: MailID
+		d: Time.ISOstring
 	}
 	interface LogtimeReport {
-		mailID: MailID
+		mail: {
+			id: MailID
+			d: Time.ISOstring
+		}
 		from: string
-		d: Time.ISO
+		d: Time.ISOstring // the date of the report
 		login: IntraLogin
 		buildingTime: Time.Hours
 		clusterTime: Time.Hours

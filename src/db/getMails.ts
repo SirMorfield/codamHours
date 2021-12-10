@@ -84,11 +84,11 @@ export async function getContent(gmail: gmail_v1.Gmail, id: FullMailID): Promise
 				const body: string = payload.parts ? payload.parts[0]!.body!.data! : payload.body!.data!
 				let decoded = base64.decode(body.replace(/-/g, '+').replace(/_/g, '/'))
 				// converting 'Bob Bye <bob.bye@gmai.com>' to 'bob.bye@gmai.com'
-				let from = (payload.headers!.find(header => header.name == 'From'))?.value || ''
+				let from = (payload.headers?.find(header => header.name == 'From'))?.value || ''
 				if (from.match(/(?<=<)\S+(?=>)/))
 					from = from.match(/(?<=<)\S+(?=>)/)![0]!
-				const date = (payload.headers!.find(header => header.name == 'Date'))?.value || ''
-				const subject = (payload.headers!.find(header => header.name == 'Subject'))?.value || ''
+				const date = (payload.headers?.find(header => header.name == 'Date'))?.value || 0
+				const subject = (payload.headers?.find(header => header.name == 'Subject'))?.value || ''
 				// TODO: protect?
 				resolve({
 					id: id.id,

@@ -1,3 +1,4 @@
+import { env } from '../env'
 import { DB, IntraLogin, Mail, Time } from '../types'
 // const year = parseInt(m.content.match(/(?<=For )\d+/)![0]!)
 // const month = parseInt(m.content.match(/(?<=(For \d\d\d\d)-)\d\d/)![0]!)
@@ -20,6 +21,8 @@ function getHours(timeStr: string | undefined): Time.Hours {
 }
 
 export function getLogtimeReport(m: Mail): DB.LogtimeReport | null {
+	// if (m.from != env.logtimeReportSender) // TODO add this?
+	// 	return null
 	try {
 		const login = m.content.match(/(?<=Dear )\S+/)![0] as IntraLogin
 		const d = (new Date(m.content.match(/(?<=For )\d{4}-\d{1,2}-\d{1,2}/)![0]!)).toISOString() // TODO: offset ??
@@ -30,7 +33,10 @@ export function getLogtimeReport(m: Mail): DB.LogtimeReport | null {
 		const clusterStr = m.content.match(/(?<=presence logged on cluster:? )\S+/im) || []
 		const clusterTime = getHours(clusterStr[0])
 		return {
-			mailID: m.id,
+			mail: {
+				id: m.id,
+				d: m.d.toISOString(),
+			},
 			from: m.from,
 			d,
 			login,

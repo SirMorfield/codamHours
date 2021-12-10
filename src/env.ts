@@ -23,7 +23,9 @@ interface Env {
 	loginRoute: string
 	scope: string[]
 	web: Web
+
 	envDir: fs.PathLike
+	logtimeReportSender: string
 }
 type URL = string
 
