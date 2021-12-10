@@ -116,7 +116,16 @@ export class DataBase {
 		await this.#syncToDisk()
 	}
 
-	#getThisWeek(weekDatas: UI.Weekdata[]): UI.ThisWeek {
+	#getThisWeekLogtimeReports(w: number, y: number, reports: DB.LogtimeReport[]): UI.LogtimeReport[] {
+		const thisWeek = reports.filter(l => {
+			const { week, year } = getWeekAndYear(new Date(l.d))
+			return w == week && y == year
+		})
+		thisWeek.sort((a, b) => (new Date(b.d)).getTime() - (new Date(a.d)).getTime())
+		return thisWeek.map(report => toUIlogtimeReport(report))
+	}
+
+	#getThisWeek(weekDatas: UI.Weekdata[], reports: DB.LogtimeReport[]): UI.ThisWeek {
 		const now = new Date()
 		const { week, year } = getWeekAndYear(now)
 		let times: { buildingTime: Time.Hours, clusterTime: Time.Hours }
@@ -129,6 +138,7 @@ export class DataBase {
 			n: week,
 			...getWeekRange(now.getFullYear(), week),
 			...times,
+			logtimeReports: this.#getThisWeekLogtimeReports(week, year, reports)
 		}
 	}
 
@@ -147,7 +157,7 @@ export class DataBase {
 				formatted: formatDate(lastUpdate, true),
 				timestamp: lastUpdate
 			},
-			thisWeek: this.#getThisWeek(weekDatas),
+			thisWeek: this.#getThisWeek(weekDatas, reports),
 			weeks: weekDatas,
 			reports: reports.map(report => toUIlogtimeReport(report)),
 			login

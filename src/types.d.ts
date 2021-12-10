@@ -65,6 +65,7 @@ export namespace UI {
 		end: Time.Date
 		buildingTime: Time.Hours
 		clusterTime: Time.Hours
+		logtimeReports: UI.LogtimeReport[]
 	}
 	interface User {
 		login: IntraLogin

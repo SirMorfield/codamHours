@@ -46,12 +46,12 @@
 		</td>
 
 	</tr>
-	<tr style="color:rgb(180, 0, 0)">
+	<!-- <tr style="color:rgb(180, 0, 0)">
 		<td>In cluster</td>
 		<td>
 			<%= thisWeek.clusterTime.toFixed(2) %> hours
 		</td>
-	</tr>
+	</tr> -->
 	<tr>
 		<td>User</td>
 		<td><%= login %></td>
@@ -78,7 +78,25 @@
 	Go to <a href="/setup">setup</a> to see how you can forward your logtime report
 <% } %>
 
-
+<table>
+	<caption>This week's summary</caption>
+	<% thisWeek.logtimeReports.forEach(report=>{ %>
+		<tr>
+			<td>
+				<%= report.date %>
+			</td>
+			<td>
+				<%= report.buildingTime.toFixed(2) %>
+			</td>
+			<!-- <td>
+				<%= report.clusterTime.toFixed(2) %>
+			</td> -->
+		</tr>
+		<% }); %>
+</table>
+<br>
+<br>
+<br>
 <table>
 	<caption>Week history</caption>
 	<tr>
@@ -119,7 +137,7 @@
 	<tr>
 		<td>Date</td>
 		<td>In building</td>
-		<td>In cluster</td>
+		<!-- <td>In cluster</td> -->
 	</tr>
 	<% reports.forEach(report=>{ %>
 		<tr>
@@ -129,9 +147,9 @@
 			<td>
 				<%= report.buildingTime.toFixed(2) %>
 			</td>
-			<td>
+			<!-- <td>
 				<%= report.clusterTime.toFixed(2) %>
-			</td>
+			</td> -->
 		</tr>
 		<% }); %>
 </table>
