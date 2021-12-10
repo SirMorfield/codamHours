@@ -89,7 +89,7 @@ export class DataBase {
 	constructor(fileName: string) {
 		this.filePath = fileName
 		this.#isPullingMails = false
-		if (!fs.existsSync(this.filePath)) {
+		if (!fs.existsSync(this.filePath) || fs.statSync(this.filePath).size < 2) {
 			const emptyDB: DB.Content = { reports: [], forwardVerifications: [], failedParse: [], lastMailPull: 0 }
 			fs.writeFileSync(this.filePath, JSON.stringify(emptyDB))
 		}
@@ -188,7 +188,7 @@ export class DataBase {
 		this.#isPullingMails = false
 	}
 
-	getForwardVerification(): { code, from }[] {
+	getForwardVerifications(): { code, from }[] {
 		this.#content.forwardVerifications.sort((a, b) => (new Date(b.d)).getTime() - (new Date(a.d)).getTime()) // last email first
 		return this.#content.forwardVerifications.map(f => { return { code: f.code, from: censorEmail(f.from) } })
 	}

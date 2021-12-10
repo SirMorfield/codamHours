@@ -40,7 +40,7 @@ const dataBase = new DataBase("database.json");
 (async () => { // TODO
 	while (true) {
 		await dataBase.pullMails()
-		await new Promise((resolve, reject) => setTimeout(resolve, 10 * 60 * 1000))
+		await new Promise((resolve, reject) => setTimeout(resolve, 2 * 60 * 1000))
 	}
 })()
 
@@ -54,7 +54,7 @@ app.get('/', authenticate, async (req, res) => {
 
 app.get('/setup', authenticate, async (req, res) => {
 	const data = {
-		forwardVerifications: dataBase.getForwardVerification()
+		forwardVerifications: dataBase.getForwardVerifications()
 	}
 	res.render('setup.ejs', data)
 })
