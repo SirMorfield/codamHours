@@ -25,6 +25,9 @@
 			text-align: left; 
 			text-size-adjust: 200%;
 		}
+		.number {
+			text-align: right;
+		}
 	</style>
 </head>
 
@@ -41,7 +44,7 @@
 	<caption>This week</caption>
 	<tr style="color:rgb(180, 0, 0)">
 		<td>In building</td>
-		<td>
+		<td >
 			<%= thisWeek.buildingTime.toFixed(2) %> hours
 		</td>
 
@@ -53,19 +56,11 @@
 		</td>
 	</tr> -->
 	<tr>
-		<td>User</td>
-		<td><%= login %></td>
-	</tr>
-	<tr>
 	<tr>
 		<td>Week</td>
 		<td>
 			<%= thisWeek.n %>
 		</td>
-	</tr>
-		<td>Last logtime report was received on</td>
-		<td><%= lastUpdate.formatted %></td>
-	</tr>
 	<tr>
 		<td>Current week</td>
 		<td><%= thisWeek.n %>, <%= thisWeek.start %> to <%= thisWeek.end %></td>
@@ -85,7 +80,7 @@
 			<td>
 				<%= report.date %>
 			</td>
-			<td>
+			<td class="number">
 				<%= report.buildingTime.toFixed(2) %>
 			</td>
 			<!-- <td>
@@ -105,7 +100,7 @@
 		<td>Start</td>
 		<td>End</td>
 		<td>Hours in building</td>
-		<td>Hours in cluster</td>
+		<!-- <td>Hours in cluster</td> -->
 	</tr>
 
 	<% weeks.forEach(week=>{ %>
@@ -113,7 +108,7 @@
 			<td>
 				<%= week.year %>
 			</td>
-			<td>
+			<td class="number">
 				<%= week.week %>
 			</td>
 			<td>
@@ -122,12 +117,12 @@
 			<td>
 				<%= week.end %>
 			</td>
-			<td>
+			<td class="number"> 
 				<%= week.buildingTime.toFixed(2) %>
 			</td>
-			<td>
+			<!-- <td>
 				<%= week.clusterTime.toFixed(2) %>
-			</td>
+			</td> -->
 		</tr>
 		<% }) %>
 </table>
@@ -144,7 +139,7 @@
 			<td>
 				<%= report.date %>
 			</td>
-			<td>
+			<td class="number">
 				<%= report.buildingTime.toFixed(2) %>
 			</td>
 			<!-- <td>
