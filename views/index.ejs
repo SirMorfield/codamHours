@@ -4,14 +4,17 @@
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Codam hours</title>
+	<title>Codam building hours</title>
 	<style>
 		:root {
 			color-scheme: dark;
 			font-family: 'arial';
 		}
-		
-		tr { border: none; }
+
+		tr {
+			border: none;
+		}
+
 		td {
 			text-align: left;
 			/* padding-left: 20px; */
@@ -21,12 +24,18 @@
 
 			border-right: none;
 		}
+
 		caption {
-			text-align: left; 
+			text-align: left;
 			text-size-adjust: 200%;
 		}
+
 		.number {
-			text-align: right;
+			/* text-align: right; */
+		}
+
+		.header {
+			font-size: 130%;
 		}
 	</style>
 </head>
@@ -34,17 +43,17 @@
 <body>
 
 </body>
-<h1>This website is still in Alpha</h1>
+<h1>Building Hours overview (Beta)</h1>
 <h6>
 	Hosted and build by Joppe Koers
 </h6>
 
 
-<table>
+<table class="header">
 	<caption>This week</caption>
 	<tr style="color:rgb(180, 0, 0)">
 		<td>In building</td>
-		<td >
+		<td>
 			<%= thisWeek.buildingTime.toFixed(2) %> hours
 		</td>
 
@@ -55,26 +64,38 @@
 			<%= thisWeek.clusterTime.toFixed(2) %> hours
 		</td>
 	</tr> -->
+
 	<tr>
+		<td>Start</td>
+		<td>
+			<%= thisWeek.start %>
+		</td>
+	</tr>
+
+	<tr>
+		<td>End</td>
+		<td>
+			<%= thisWeek.end %>
+		</td>
+	</tr>
+
 	<tr>
 		<td>Week</td>
 		<td>
 			<%= thisWeek.n %>
 		</td>
-	<tr>
-		<td>Current week</td>
-		<td><%= thisWeek.n %>, <%= thisWeek.start %> to <%= thisWeek.end %></td>
 	</tr>
+
 </table>
 <br>
 
 <% if (reports.length==0) { %>
 	Server has not recieved any logtime reports<br>
 	Go to <a href="/setup">setup</a> to see how you can forward your logtime report
-<% } %>
+	<% } %>
 
 <table>
-	<caption>This week's summary</caption>
+	<caption class="header">This week's summary</caption>
 	<% thisWeek.logtimeReports.forEach(report=>{ %>
 		<tr>
 			<td>
@@ -93,7 +114,7 @@
 <br>
 <br>
 <table>
-	<caption>Week history</caption>
+	<caption class="header">Week history</caption>
 	<tr>
 		<td>Year</td>
 		<td>Week</td>
@@ -128,7 +149,7 @@
 </table>
 <br>
 <table>
-	<caption>Parsed from these mails</caption>
+	<caption class="header">Parsed from these mails</caption>
 	<tr>
 		<td>Date</td>
 		<td>In building</td>
@@ -154,3 +175,4 @@
 	<a href="https://github.com/SirMorfield/codamHours">Source</a>
 </footer>
 </html>
+		
