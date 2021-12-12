@@ -5,7 +5,7 @@ import { v4 as uuid } from 'uuid'
 import { authenticate, passport, UserProfile } from './authentication'
 import { env } from "./env"
 import { DataBase } from './db/database'
-import { authUrl, getMails, saveToken, setGmailSuccess } from "./db/getMails"
+import { authUrl, saveToken, setGmailSuccess } from "./db/getMails"
 
 const app = express()
 app.set("views", path.join(__dirname, "../views"))
@@ -36,6 +36,7 @@ app.get('/auth/logout', (req, res) => {
 	res.redirect('/')
 })
 
+//@ts-ignore
 const gmailAuthPath = env.web.redirect_uris[0]!.split('/').at(-1) // 'abn423sd'
 app.get(`/AUTHGMAIL${gmailAuthPath}`, (req, res) => {
 	res.redirect(authUrl)
