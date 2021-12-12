@@ -1,6 +1,4 @@
-import readline from 'readline'
 import { gmail_v1, google } from 'googleapis'
-import { OAuth2Client } from 'google-auth-library'
 import base64 from 'base-64'
 import { Mail, MailID } from '../types'
 import fs from 'fs/promises'
@@ -10,39 +8,35 @@ const fsExists = async path => !!(await fs.stat(path).catch(e => false))
 const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 const TOKEN_PATH = `${env.envDir}/token.json`
 
-async function getNewToken(client): Promise<Object> {
-	const authUrl = client.generateAuthUrl({
-		access_type: 'offline',
-		scope: SCOPES,
-	})
-	console.log('Authorize this app by visiting this url:', authUrl)
-	const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
-	return new Promise((resolve, reject) => {
-		rl.question('Enter the code from that page here: ', (code) => {
-			rl.close()
-			client.getToken(code, (err, token) => {
-				if (err)
-					reject(err)
-				client.setCredentials(token)
-				resolve(token)
-			})
+const client = new google.auth.OAuth2(env.web.client_id, env.web.client_secret, env.web.redirect_uris[0])
+export const authUrl = client.generateAuthUrl({
+	access_type: 'offline',
+	scope: SCOPES,
+})
+let gmail: gmail_v1.Gmail | null = null
+
+export async function saveToken(code: string) {
+	const token = await new Promise((resolve, reject) => {
+		client.getToken(code, (err, token) => {
+			if (err)
+				console.error(err)
+			resolve(token)
 		})
 	})
+	await fs.writeFile(TOKEN_PATH, JSON.stringify(token))
 }
 
-export async function getAuthClient(): Promise<OAuth2Client> {
-	const { client_secret, client_id, redirect_uris } = env.web
-	const client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0])
-
-	let token
+export async function setGmailSuccess(): Promise<boolean> {
 	if (!(await fsExists(TOKEN_PATH))) {
-		token = getNewToken(client)
-		await fs.writeFile(TOKEN_PATH, JSON.stringify(token))
+		gmail = null
+		return false
 	}
-	else
-		token = JSON.parse((await fs.readFile(TOKEN_PATH)).toString())
+	let token = JSON.parse((await fs.readFile(TOKEN_PATH)).toString())
 	client.setCredentials(token)
-	return client
+	gmail = google.gmail({ version: 'v1', auth: client })
+	if ((await listIDs(gmail, 1)) == null)
+		gmail = null
+	return true
 }
 
 interface FullMailID {
@@ -50,7 +44,7 @@ interface FullMailID {
 	threadId: string,
 }
 
-export async function listIDs(gmail: gmail_v1.Gmail, maxResults?: number): Promise<FullMailID[]> {
+export async function listIDs(gmail: gmail_v1.Gmail, maxResults?: number): Promise<FullMailID[] | null> {
 	return new Promise((resolve, reject) => {
 		let headers: gmail_v1.Params$Resource$Users$Messages$List = {
 			userId: 'me',
@@ -61,9 +55,9 @@ export async function listIDs(gmail: gmail_v1.Gmail, maxResults?: number): Promi
 		gmail.users.messages.list(headers, (err, res) => {
 			if (err) {
 				console.error(err)
-				resolve([])
+				resolve(null)
 			}
-			resolve(res!.data.messages as FullMailID[] || []);
+			resolve(res?.data.messages as FullMailID[] || []);
 		})
 	})
 }
@@ -105,12 +99,15 @@ export async function getContent(gmail: gmail_v1.Gmail, id: FullMailID): Promise
 	})
 }
 
-let gmail: gmail_v1.Gmail
 export async function getMails(ignore: MailID[] = [], maxResults?: number): Promise<Mail[]> {
 	if (!gmail)
-		gmail = google.gmail({ version: 'v1', auth: await getAuthClient() })
-	console.log('getting mails')
-	let IDs: FullMailID[] = await listIDs(gmail, maxResults)
+		await setGmailSuccess()
+	if (!gmail) {
+		console.log('gmail client failed')
+		return []
+	}
+	console.log(new Date(), 'getting mails')
+	let IDs: FullMailID[] = await listIDs(gmail, maxResults) as FullMailID[]
 	IDs = IDs.filter(id => !ignore.includes(id.id))
 	const contents: Mail[] = []
 	for (const id of IDs) {
@@ -118,6 +115,6 @@ export async function getMails(ignore: MailID[] = [], maxResults?: number): Prom
 		if (content)
 			contents.push(content) // TODO: protect?
 	}
-	console.log('got', contents.length, 'mail contents')
+	console.log(new Date(), 'got', contents.length, 'mail contents')
 	return contents
 }
