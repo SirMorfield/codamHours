@@ -163,6 +163,7 @@ export class DataBase {
 
 	getForwardVerifications(): { code: string, from: string }[] {
 		this.#content.forwardVerifications.sort((a, b) => (new Date(b.d)).getTime() - (new Date(a.d)).getTime()) // last email first
-		return this.#content.forwardVerifications.map(f => { return { code: f.code, from: censorEmail(f.from) } })
+		const mails = this.#content.forwardVerifications.filter(f => (Date.now() - (new Date(f.d)).getTime()) < 4 * 24 * 60 * 60 * 1000) // do not show emails after 4 days
+		return mails.map(f => { return { code: f.code, from: censorEmail(f.from) } })
 	}
 }
