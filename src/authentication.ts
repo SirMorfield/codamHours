@@ -5,9 +5,9 @@ import fetch from 'node-fetch'
 
 export function authenticate(req, res, next) {
 	if (!req.user) {
-		res.redirect(env.loginRoute);
+		res.redirect(env.loginRoute)
 	} else {
-		next();
+		next()
 	}
 }
 
@@ -23,12 +23,12 @@ const users: UserProfile[] = []
 
 
 passport.serializeUser((user, done) => {
-	done(null, user.id);
+	done(null, user.id)
 })
 
 passport.deserializeUser((id, done) => {
 	const user = users.find((user) => user.id === id)
-	done(null, user);
+	done(null, user)
 })
 
 async function getProfile(accessToken: string, refreshToken: string): Promise<UserProfile | null> {
@@ -73,10 +73,3 @@ const client = new OAuth2Strategy({
 passport.use(env.provider, client)
 
 export { passport }
-
-
-// router.get(`/${provider}/callback`,
-// 	passport.authenticate(provider), (req, res) => {
-// 		console.log(users)
-// 		res.send('logged in')
-// 	})

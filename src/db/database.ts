@@ -36,46 +36,45 @@ function toUIlogtimeReport(report: DB.LogtimeReport): UI.LogtimeReport {
 }
 
 function censorEmail(email: string): string { // abcdef@gmail.com --> ab****@gmail.com
-	return email.replace(/(.{2})(.*)(?=@)/,
-		(gp1, gp2, gp3) => {
-			for (let i = 0; i < gp3.length; i++) {
-				gp2 += "*"
-			} return gp2
-		});
+	return email.replace(/(.{2})(.*)(?=@)/, (gp1, gp2, gp3) => {
+		for (let i = 0; i < gp3.length; i++)
+			gp2 += "*"
+		return gp2
+	})
 }
 
 export class DataBase {
 	readonly filePath: fs.PathLike
-	#content: DB.Content
-	#isPullingMails: boolean
+	private _db: DB.Content
+	private _isPullingMails: boolean
 
 	constructor(fileName: string) {
 		this.filePath = fileName
-		this.#isPullingMails = false
+		this._isPullingMails = false
 		if (!fs.existsSync(this.filePath) || fs.statSync(this.filePath).size < 2) {
 			const emptyDB: DB.Content = { reports: [], forwardVerifications: [], failedParse: [], lastMailPull: 0 }
 			fs.writeFileSync(this.filePath, JSON.stringify(emptyDB))
 		}
-		this.#content = JSON.parse(fs.readFileSync(this.filePath).toString())!
+		this._db = JSON.parse(fs.readFileSync(this.filePath).toString())!
 	}
 
 	async #syncToDisk() {
-		await fs.promises.writeFile(this.filePath, JSON.stringify(this.#content))
+		await fs.promises.writeFile(this.filePath, JSON.stringify(this._db))
 	}
 
 	async addLogtimeReport(report: DB.LogtimeReport): Promise<void> {
-		this.#content.failedParse = this.#content.failedParse.filter(f => f.id != report.mail.id)
-		if (this.#content.reports.find(x => x.mail.id == report.mail.id))
+		this._db.failedParse = this._db.failedParse.filter(f => f.id != report.mail.id)
+		if (this._db.reports.find(x => x.mail.id == report.mail.id))
 			return
-		this.#content.reports.push(report)
+		this._db.reports.push(report)
 		await this.#syncToDisk()
 	}
 
 	async addForwardVerification(verfication: DB.ForwardVerification): Promise<void> {
-		this.#content.failedParse = this.#content.failedParse.filter(f => f.id != verfication.mailID)
-		if (this.#content.reports.find(x => x.mail.id == verfication.mailID))
+		this._db.failedParse = this._db.failedParse.filter(f => f.id != verfication.mailID)
+		if (this._db.reports.find(x => x.mail.id == verfication.mailID))
 			return
-		this.#content.forwardVerifications.push(verfication)
+		this._db.forwardVerifications.push(verfication)
 		await this.#syncToDisk()
 	}
 
@@ -106,7 +105,7 @@ export class DataBase {
 	}
 
 	getPersonInfo(login: IntraLogin): UI.User | null {
-		const reports: DB.LogtimeReport[] = this.#content.reports.filter(x => x.login == login)
+		const reports: DB.LogtimeReport[] = this._db.reports.filter(x => x.login == login)
 		const weekDatas = reportsToWeekdata(reports)
 
 		let lastUpdate = new Date(0)
@@ -128,19 +127,19 @@ export class DataBase {
 	}
 
 	#savedMails(): MailID[] {
-		const reports = this.#content.reports.map(report => report.mail.id)
-		const verifications = this.#content.forwardVerifications.map(x => x.mailID)
-		const failedParse = this.#content.failedParse.map(x => x.id)
+		const reports = this._db.reports.map(report => report.mail.id)
+		const verifications = this._db.forwardVerifications.map(x => x.mailID)
+		const failedParse = this._db.failedParse.map(x => x.id)
 		return [...reports, ...verifications, ...failedParse]
 	}
 
 	async pullMails(ignorePullTimeout = false): Promise<void> { // TODO ignore mails that are not logtime reports
-		if (this.#isPullingMails)
+		if (this._isPullingMails)
 			return
-		if (!ignorePullTimeout && Date.now() - this.#content.lastMailPull < 30 * 1000)
+		if (!ignorePullTimeout && Date.now() - this._db.lastMailPull < 30 * 1000)
 			return
-		this.#isPullingMails = true
-		this.#content.lastMailPull = Date.now()
+		this._isPullingMails = true
+		this._db.lastMailPull = Date.now()
 
 		const mails: Mail[] = await mailer.getMails(this.#savedMails()) // TODO: paging
 		for (const mail of mails) {
@@ -154,16 +153,16 @@ export class DataBase {
 				this.addForwardVerification(verification)
 				continue
 			}
-			this.#content.failedParse.push(mail)
+			this._db.failedParse.push(mail)
 			await this.#syncToDisk()
 			// console.log('could not parse mail', mail) // TODO
 		}
-		this.#isPullingMails = false
+		this._isPullingMails = false
 	}
 
 	getForwardVerifications(): { code: string, from: string }[] {
-		this.#content.forwardVerifications.sort((a, b) => (new Date(b.d)).getTime() - (new Date(a.d)).getTime()) // last email first
-		const mails = this.#content.forwardVerifications.filter(f => (Date.now() - (new Date(f.d)).getTime()) < 4 * 24 * 60 * 60 * 1000) // do not show emails after 4 days
-		return mails.map(f => { return { code: f.code, from: censorEmail(f.from) } })
+		this._db.forwardVerifications.sort((a, b) => (new Date(b.d)).getTime() - (new Date(a.d)).getTime()) // last email first
+		const mails = this._db.forwardVerifications.filter(f => (Date.now() - (new Date(f.d)).getTime()) < 4 * 24 * 60 * 60 * 1000) // do not show emails after 4 days
+		return mails.map(f => ({ code: f.code, from: censorEmail(f.from) }))
 	}
 }
