@@ -2,7 +2,7 @@ import express from "express"
 import path from "path"
 import session from 'express-session'
 import { v4 as uuid } from 'uuid'
-import { authenticate, passport, UserProfile } from './authentication'
+import { passport, UserProfile } from './authentication'
 import { env } from "./env"
 import { DataBase } from './db/database'
 import { authUrl, saveToken, setGmailSuccess } from "./db/getMails"
@@ -57,7 +57,9 @@ const dataBase = new DataBase("database.json");
 	}
 })()
 
-app.get('/', authenticate, async (req, res) => {
+app.get('/', async (req, res) => {
+	if (!req.user)
+		return res.redirect('/setup')
 	const user = req.user as UserProfile
 	const userData = dataBase.getPersonInfo(user.login)
 	if (!userData)
@@ -65,11 +67,16 @@ app.get('/', authenticate, async (req, res) => {
 	res.render('index.ejs', userData)
 })
 
-app.get('/setup', authenticate, async (req, res) => {
+app.get('/setup', async (req, res) => {
 	const data = {
-		forwardVerifications: dataBase.getForwardVerifications()
+		forwardVerifications: req.user ? dataBase.getForwardVerifications() : [],
+		loginRoute: env.loginRoute,
 	}
 	res.render('setup.ejs', data)
+})
+
+app.get('/mailfilterfile', (req, res) => {
+	res.download('./logtimeReportForwarding.xml')
 })
 
 const port = process.env['PORT'] || 8080

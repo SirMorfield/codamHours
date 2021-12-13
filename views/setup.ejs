@@ -36,15 +36,20 @@
 	</style>
 	<script>
 		// I will not accept snarky comments about this
-		setTimeout(() => location.reload(), 3000)
+		setTimeout(() => location.reload(), 15000)
 	</script>
 </head>
 
 <body>
-	<p>Enable automatic forwarding from <code>no-reply@student.codam.nl</code> to <code>codamhours@gmail.com</code> in your mailing application or website</p>
-	<p>It will ask for an verification code that will appear below (This may take several minutes)</p>
+	<p>This website will parse all your logtime reports mails and display them nicely in a summary</p>
+	<p>To do this, first <a href="<%= loginRoute %>">login with intra</a></p>
+	<p>Then you need to create a so-called filter that automatically forwards mails from <code>no-reply@student.codam.nl</code> to <code>codamhours@gmail.com</code> </p>
+	<p>You can use this <a href="/mailfilterfile"> prebuilt filter</a> <a href="https://support.google.com/mail/answer/6579#zippy=%2Cexport-or-import-filters">gmail how-to</a></p>
+	<p>It will ask for an "verification for forwarding" code that will appear below (This may take several minutes)</p>
+	<p>Paste the code acclimated with your email in the email client that you are using (the codes are censored for privacy reasons)</p>
+	<p>Automatic email forwards are now enabled, now it is time to wait for the first logtime report</p>
 	<table>
-		<caption>Forward verification codes</caption>
+		<caption style="display: inline-block;">Forward verification codes</caption>
 		<tr>
 			<td>Code</td>
 			<td>Email</td>

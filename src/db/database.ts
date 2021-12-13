@@ -161,7 +161,7 @@ export class DataBase {
 		this.#isPullingMails = false
 	}
 
-	getForwardVerifications(): { code, from }[] {
+	getForwardVerifications(): { code: string, from: string }[] {
 		this.#content.forwardVerifications.sort((a, b) => (new Date(b.d)).getTime() - (new Date(a.d)).getTime()) // last email first
 		return this.#content.forwardVerifications.map(f => { return { code: f.code, from: censorEmail(f.from) } })
 	}
