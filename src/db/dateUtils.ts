@@ -4,7 +4,7 @@ export function formatDate(date: Date, hoursMinutes: boolean = true): Time.Date 
 	const dateFormat: Intl.DateTimeFormatOptions = {
 		weekday: 'short',
 		month: 'short',
-		day: 'numeric',
+		day: '2-digit',
 		timeZone: 'CET',
 		hour12: false
 	}
@@ -12,7 +12,7 @@ export function formatDate(date: Date, hoursMinutes: boolean = true): Time.Date 
 		dateFormat.hour = 'numeric'
 		dateFormat.minute = 'numeric'
 	}
-	return date.toLocaleString('en-NL', dateFormat).replace(/\./, '')
+	return date.toLocaleString('en-NL', dateFormat).replace(/\.|,/, '')
 }
 
 export function getWeekAndYear(date: Date): { year: number, week: number } {

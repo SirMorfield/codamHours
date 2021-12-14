@@ -6,6 +6,7 @@ import { passport, UserProfile } from './authentication'
 import { env } from "./env"
 import { DataBase } from './db/database'
 import { authUrl, saveToken, setGmailSuccess } from "./db/getMails"
+import fs from 'fs'
 
 const app = express()
 app.set("views", path.join(__dirname, "../views"))
@@ -62,21 +63,28 @@ app.get('/', async (req, res) => {
 		return res.redirect('/setup')
 	const user = req.user as UserProfile
 	const userData = dataBase.getPersonInfo(user.login)
-	if (!userData)
+	if (!userData || userData.reports.length == 0)
 		return res.redirect('/setup')
 	res.render('index.ejs', userData)
 })
 
 app.get('/setup', async (req, res) => {
 	const data = {
-		forwardVerifications: req.user ? dataBase.getForwardVerifications() : [],
+		// forwardVerifications: req.user ? dataBase.getForwardVerifications() : [],
+		forwardVerifications: dataBase.getForwardVerifications(),
 		loginRoute: env.loginRoute,
 	}
 	res.render('setup.ejs', data)
 })
 
 app.get('/mailfilterfile', (req, res) => {
-	res.download('./logtimeReportForwarding.xml')
+	const file = '/app/public/logtimeReportForwarding.xml'
+	res.setHeader('Content-disposition', 'attachment; filename=' + path.basename(file))
+	res.setHeader('Content-type', 'XML')
+	let filestream = fs.createReadStream(file)
+	filestream.pipe(res)
+	// You would thing that this is easy right? Well nooo Safari gives a "no rss feed installed" error
+	// res.attachment('/app/logtimeReportForwarding.xml')
 })
 
 const port = process.env['PORT'] || 8080
