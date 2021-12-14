@@ -6,6 +6,7 @@ import { passport, UserProfile } from './authentication'
 import { env } from "./env"
 import { DataBase } from './db/database'
 import { authUrl, saveToken, setGmailSuccess } from "./db/getMails"
+import { getPersonInfo } from './db/ui'
 import fs from 'fs'
 
 const app = express()
@@ -62,7 +63,7 @@ app.get('/', async (req, res) => {
 	if (!req.user)
 		return res.redirect('/setup')
 	const user = req.user as UserProfile
-	const userData = dataBase.getPersonInfo(user.login)
+	const userData = getPersonInfo(dataBase._db.reports, user.login)
 	if (!userData || userData.reports.length == 0)
 		return res.redirect('/setup')
 	res.render('index.ejs', userData)
