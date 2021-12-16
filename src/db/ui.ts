@@ -58,19 +58,18 @@ function getThisWeek(weekDatas: UI.Weekdata[], reports: DB.LogtimeReport[]): UI.
 }
 
 export function getPersonInfo(dbReports: DB.LogtimeReport[], login: IntraLogin): UI.User | null {
-	const reports: DB.LogtimeReport[] = dbReports.filter(x => x.login == login)
-	const weekDatas = reportsToWeekdata(reports)
-
-	let lastUpdate = new Date(0)
-	for (const report of reports) {
-		const d = new Date(report.mail.d)
-		if (d > lastUpdate)
-			lastUpdate = d
+	const reports: DB.LogtimeReport[] = []
+	for (const dbReport of dbReports) {
+		if (dbReport.login == login && !reports.find(report => report.d == dbReport.d)) // also ignore duplicate mails
+			reports.push(dbReport)
 	}
+	const weekDatas = reportsToWeekdata(reports)
+	reports.sort((a, b) => (new Date(b.d)).getTime() - (new Date(a.d)).getTime()) // last date first
+
 	return {
 		lastUpdate: {
-			formatted: formatDate(lastUpdate, true),
-			timestamp: lastUpdate
+			formatted: reports.length > 0 ? formatDate(new Date(reports[0]!.d), true) : 'never',
+			timestamp: reports.length > 0 ? new Date(reports[0]!.d) : new Date(0),
 		},
 		thisWeek: getThisWeek(weekDatas, reports),
 		weeks: weekDatas,
