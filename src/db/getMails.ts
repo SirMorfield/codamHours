@@ -72,7 +72,6 @@ export async function getContent(gmail: gmail_v1.Gmail, id: FullMailID): Promise
 				console.log(err)
 				resolve(null)
 			}
-			// TODO: what if there is more parts? for now a single part can hold a email length of 48000 chars
 			try {
 				const payload = res!.data!.payload!
 				const body: string = payload.parts ? payload.parts[0]!.body!.data! : payload.body!.data!
@@ -83,7 +82,6 @@ export async function getContent(gmail: gmail_v1.Gmail, id: FullMailID): Promise
 					from = from.match(/(?<=<)\S+(?=>)/)![0]!
 				const date = (payload.headers?.find(header => header.name == 'Date'))?.value || 0
 				const subject = (payload.headers?.find(header => header.name == 'Subject'))?.value || ''
-				// TODO: protect?
 				resolve({
 					id: id.id,
 					content: decoded,
@@ -113,7 +111,7 @@ export async function getMails(ignore: MailID[] = [], maxResults?: number): Prom
 	for (const id of IDs) {
 		const content: Mail | null = await getContent(gmail, id)
 		if (content)
-			contents.push(content) // TODO: protect?
+			contents.push(content)
 	}
 	console.log(new Date(), 'got', contents.length, 'mail contents')
 	return contents

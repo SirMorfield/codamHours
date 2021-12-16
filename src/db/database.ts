@@ -5,7 +5,7 @@ import { getLogtimeReport } from './getLogtimeReport'
 import { getForwardVerification } from './getForwardVerification'
 
 function censorEmail(email: string): string { // abcdef@gmail.com --> ab****@gmail.com
-	return email.replace(/(.{2})(.*)(?=@)/, (gp1, gp2, gp3) => {
+	return email.replace(/(.{3})(.*)(?=@)/, (gp1, gp2, gp3) => {
 		for (let i = 0; i < gp3.length; i++)
 			gp2 += "*"
 		return gp2
@@ -20,14 +20,14 @@ export class DataBase {
 	constructor(fileName: string) {
 		this.filePath = fileName
 		this._isPullingMails = false
-		if (!fs.existsSync(this.filePath) || fs.statSync(this.filePath).size < 2) {
-			const emptyDB: DB.Content = { reports: [], forwardVerifications: [], failedParse: [], lastMailPull: 0 }
-			fs.writeFileSync(this.filePath, JSON.stringify(emptyDB))
-		}
+		const emptyDB: DB.Content = { reports: [], forwardVerifications: [], failedParse: [], lastMailPull: 0 }
+		const emptyDBstr: string = JSON.stringify(emptyDB)
+		if (!fs.existsSync(this.filePath) || fs.statSync(this.filePath).size < emptyDBstr.length)
+			fs.writeFileSync(this.filePath, emptyDBstr)
 		this._db = JSON.parse(fs.readFileSync(this.filePath).toString())!
 	}
 
-	async #syncToDisk() {
+	private async _syncToDisk() {
 		await fs.promises.writeFile(this.filePath, JSON.stringify(this._db))
 	}
 
@@ -36,7 +36,7 @@ export class DataBase {
 		if (this._db.reports.find(x => x.mail.id == report.mail.id))
 			return
 		this._db.reports.push(report)
-		await this.#syncToDisk()
+		await this._syncToDisk()
 	}
 
 	async addForwardVerification(verfication: DB.ForwardVerification): Promise<void> {
@@ -44,17 +44,17 @@ export class DataBase {
 		if (this._db.reports.find(x => x.mail.id == verfication.mailID))
 			return
 		this._db.forwardVerifications.push(verfication)
-		await this.#syncToDisk()
+		await this._syncToDisk()
 	}
 
-	#savedMails(): MailID[] {
+	private _savedMails(): MailID[] {
 		const reports = this._db.reports.map(report => report.mail.id)
 		const verifications = this._db.forwardVerifications.map(x => x.mailID)
 		const failedParse = this._db.failedParse.map(x => x.id)
 		return [...reports, ...verifications, ...failedParse]
 	}
 
-	async pullMails(ignorePullTimeout = false): Promise<void> { // TODO ignore mails that are not logtime reports
+	async pullMails(ignorePullTimeout = false): Promise<void> {
 		if (this._isPullingMails)
 			return
 		if (!ignorePullTimeout && Date.now() - this._db.lastMailPull < 30 * 1000)
@@ -62,7 +62,7 @@ export class DataBase {
 		this._isPullingMails = true
 		this._db.lastMailPull = Date.now()
 
-		const mails: Mail[] = await mailer.getMails(this.#savedMails()) // TODO: paging
+		const mails: Mail[] = await mailer.getMails(this._savedMails())
 		for (const mail of mails) {
 			const report: DB.LogtimeReport | null = getLogtimeReport(mail)
 			if (report) {
@@ -75,8 +75,7 @@ export class DataBase {
 				continue
 			}
 			this._db.failedParse.push(mail)
-			await this.#syncToDisk()
-			// console.log('could not parse mail', mail) // TODO
+			await this._syncToDisk()
 		}
 		this._isPullingMails = false
 	}

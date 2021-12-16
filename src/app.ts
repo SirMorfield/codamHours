@@ -52,7 +52,7 @@ app.get(`/${gmailAuthPath}`, async (req, res) => {
 
 const dataBase = new DataBase("database.json");
 
-(async () => { // TODO
+(async () => {
 	while (true) {
 		await dataBase.pullMails()
 		await new Promise((resolve, reject) => setTimeout(resolve, 2 * 60 * 1000))
