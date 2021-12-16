@@ -10,12 +10,10 @@ function getHours(timeStr: string | undefined): Time.Hours {
 		return 0
 
 	const timeNum = timeStr.split(':').map(n => parseInt(n)) // TODO
-	let hours
+	let hours = -1
 	if (timeNum.length == 3)
 		hours = timeNum[0]! + timeNum[1]! / 60 + timeNum[1]! / 60 / 60
-	else
-		hours = 0
-	if (!isFinite(hours))
+	if (!isFinite(hours) || hours < 0)
 		hours = 0
 	return hours
 }
@@ -24,7 +22,7 @@ export function getLogtimeReport(m: Mail): DB.LogtimeReport | null {
 	// if (m.from != env.logtimeReportSender) // TODO add this?
 	// 	return null
 	try {
-		const login = m.content.match(/(?<=Dear )\S+/)![0] as IntraLogin
+		const login = m.content.match(/(?<=Dear )\S+/im)![0] as IntraLogin
 		const d = (new Date(m.content.match(/(?<=For )\d{4}-\d{1,2}-\d{1,2}/)![0]!)).toISOString() // TODO: offset ??
 
 		const buildingStr = m.content.match(/(?<=presence in building:? )\S+/im) || []
