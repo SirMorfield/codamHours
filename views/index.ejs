@@ -56,14 +56,14 @@
 	<tr style="color:rgb(180, 0, 0)">
 		<td>In building</td>
 		<td>
-			<%= thisWeek.buildingTime.toFixed(2) %> hours
+			<%= thisWeek.buildingTime.toFixed(2).padStart(5, '0') %> hours
 		</td>
 
 	</tr>
 	<!-- <tr style="color:rgb(180, 0, 0)">
 		<td>In cluster</td>
 		<td>
-			<%= thisWeek.clusterTime.toFixed(2) %> hours
+			<%= thisWeek.clusterTime.toFixed(2).padStart(5, '0') %> hours
 		</td>
 	</tr> -->
 
@@ -104,10 +104,10 @@
 				<%= report.date %>
 			</td>
 			<td class="number">
-				<%= report.buildingTime.toFixed(2) %>
+				<%= report.buildingTime.toFixed(2).padStart(5, '0') %>
 			</td>
 			<!-- <td>
-				<%= report.clusterTime.toFixed(2) %>
+				<%= report.clusterTime.toFixed(2).padStart(5, '0') %>
 			</td> -->
 		</tr>
 		<% }); %>
@@ -141,10 +141,10 @@
 				<%= week.end %>
 			</td>
 			<td class="number"> 
-				<%= week.buildingTime.toFixed(2) %>
+				<%= week.buildingTime.toFixed(2).padStart(5, '0') %>
 			</td>
 			<!-- <td>
-				<%= week.clusterTime.toFixed(2) %>
+				<%= week.clusterTime.toFixed(2).padStart(5, '0') %>
 			</td> -->
 		</tr>
 		<% }) %>
@@ -163,10 +163,10 @@
 				<%= report.date %>
 			</td>
 			<td class="number">
-				<%= report.buildingTime.toFixed(2) %>
+				<%= report.buildingTime.toFixed(2).padStart(5, '0') %>
 			</td>
 			<!-- <td>
-				<%= report.clusterTime.toFixed(2) %>
+				<%= report.clusterTime.toFixed(2).padStart(5, '0') %>
 			</td> -->
 		</tr>
 		<% }); %>
