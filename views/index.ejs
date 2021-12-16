@@ -56,14 +56,14 @@
 	<tr style="color:rgb(180, 0, 0)">
 		<td>In building</td>
 		<td>
-			<%= thisWeek.buildingTime.toFixed(2) %> hours
+			<%= Math.floor(thisWeek.buildingTime).toString().padStart(2, '0') %>:<%= Math.floor((thisWeek.buildingTime * 60) % 60).toString().padStart(2, '0') %> hours
 		</td>
 
 	</tr>
 	<!-- <tr style="color:rgb(180, 0, 0)">
 		<td>In cluster</td>
 		<td>
-			<%= thisWeek.clusterTime.toFixed(2) %> hours
+			<%= Math.floor(thisWeek.clusterTime).toString().padStart(2, '0') %>:<%= Math.floor((thisWeek.clusterTime * 60) % 60).toString().padStart(2, '0') %> hours
 		</td>
 	</tr> -->
 
@@ -104,10 +104,10 @@
 				<%= report.date %>
 			</td>
 			<td class="number">
-				<%= report.buildingTime.toFixed(2) %>
+				<%= Math.floor(report.buildingTime).toString().padStart(2, '0') %>:<%= Math.floor((report.buildingTime * 60) % 60).toString().padStart(2, '0') %>
 			</td>
 			<!-- <td>
-				<%= report.clusterTime.toFixed(2) %>
+				<%= Math.floor(report.clusterTime).toString().padStart(2, '0') %>:<%= Math.floor((report.clusterTime * 60) % 60).toString().padStart(2, '0') %>
 			</td> -->
 		</tr>
 		<% }); %>
@@ -140,11 +140,11 @@
 			<td>
 				<%= week.end %>
 			</td>
-			<td class="number"> 
-				<%= week.buildingTime.toFixed(2) %>
+			<td class="number">
+				<%= Math.floor(week.buildingTime).toString().padStart(2, '0') %>:<%= Math.floor((week.buildingTime * 60) % 60).toString().padStart(2, '0') %>
 			</td>
 			<!-- <td>
-				<%= week.clusterTime.toFixed(2) %>
+				<%= Math.floor(week.clusterTime).toString().padStart(2, '0') %>:<%= Math.floor((week.clusterTime * 60) % 60).toString().padStart(2, '0') %>
 			</td> -->
 		</tr>
 		<% }) %>
@@ -163,10 +163,10 @@
 				<%= report.date %>
 			</td>
 			<td class="number">
-				<%= report.buildingTime.toFixed(2) %>
+				<%= Math.floor(report.buildingTime).toString().padStart(2, '0') %>:<%= Math.floor((report.buildingTime * 60) % 60).toString().padStart(2, '0') %>
 			</td>
 			<!-- <td>
-				<%= report.clusterTime.toFixed(2) %>
+				<%= Math.floor(report.clusterTime).toString().padStart(2, '0') %>:<%= Math.floor((report.clusterTime * 60) % 60).toString().padStart(2, '0') %>
 			</td> -->
 		</tr>
 		<% }); %>
@@ -177,4 +177,4 @@
 	<a href="https://github.com/SirMorfield/codamHours">Source</a>
 </footer>
 </html>
-		
+
