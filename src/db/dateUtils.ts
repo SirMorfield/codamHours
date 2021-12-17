@@ -28,7 +28,7 @@ export function getWeekAndYear(date: Date): { year: number, week: number } {
 // weeknumber starts from 1, weeks start on monday
 export function getWeekRange(year: number, week: number): { start: Time.Date, end: Time.Date } {
 	const d = new Date(year, 0, week * 7)
-	const w = d.valueOf() - d.getDay() * 24 * 60 * 60 * 1000
+	const w = d.valueOf() - (d.getDay() - 1) * 24 * 60 * 60 * 1000
 	const start = new Date(w)
 	const end = new Date(w + 6 * 24 * 60 * 60 * 1000)
 	return {
