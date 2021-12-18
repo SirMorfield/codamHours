@@ -47,12 +47,16 @@
 <body>
 	<p>This website will parse all your logtime reports mails and display them nicely in a summary</p>
 	<p>To do this, first <a href="<%= loginRoute %>">login with intra</a></p>
-	<p>Then, create a forwarding address. <a href="https://support.google.com/domains/answer/3251241?hl=en">gmail tutorial</a></p>
+	<p>Then, create a forwarding address. <a href="https://support.google.com/domains/answer/3251241?hl=en">gmail tutorial</a> <a href="https://support.microsoft.com/en-us/office/turn-on-automatic-forwarding-in-outlook-on-the-web-7f2670a1-7fff-4475-8a3c-5822d63b0c8e">outlook tutorial</a></p>
 	<p>It will ask for an "verification for forwarding" code that will appear below under Forward verification codes (This may take several minutes)</p>
-	<p>Paste the code acclimated with your email in the email client that you are using (the codes are censored for privacy reasons)</p>
+	<p>Paste the code associated with your email in the email client that you are using (the mail addresses are censored for privacy reasons)</p>
 	<p>Then you need to create a so-called filter that automatically forwards mails from <code>no-reply@student.codam.nl</code> to <code>codamhours@gmail.com</code> </p>
-	<p>You can use this <a href="/mailfilterfile"> prebuilt filter</a> which you can import using this tutorial <a href="https://support.google.com/mail/answer/6579#zippy=%2Cexport-or-import-filters" target="_blank">gmail how-to</a></p>
+	<p>You can use this <a href="/mailfilterfile"> prebuilt filter</a> <a href="https://support.google.com/mail/answer/6579#zippy=%2Cexport-or-import-filters" target="_blank">gmail tutorial</a> <a href="https://support.microsoft.com/en-us/office/turn-on-automatic-forwarding-in-outlook-on-the-web-7f2670a1-7fff-4475-8a3c-5822d63b0c8e">outlook tutorial</a> </p>
+	<p>This filter will forward all mails from <code>no-reply@student.codam.nl</code> that include the words <code>presence in building</code> to <code>codamhours@gmail.com</code> and mark them as read</p>
 	<p>Automatic email forwards are now enabled, now it is time to wait for the first logtime report</p>
+	<p>When the server receives a logtime report you will be redirected to the home page </p>
+	<br>
+	<br>
 	<table>
 		<caption style="display: inline-block;">Forward verification codes</caption>
 		<tr>
