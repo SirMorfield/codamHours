@@ -13,12 +13,12 @@ const app = express()
 app.set("views", path.join(__dirname, "../views"))
 app.set('viewengine', 'ejs')
 
-// const FileStore = require('session-file-store')(session);
+const FileStore = require('session-file-store')(session);
 app.use(session({
 	genid: (req) => {
 		return uuid()
 	},
-	// store: new FileStore(),
+	store: new FileStore({ path: env.sessionStorePath, retries: 1 }),
 	secret: env.sessionSecret,
 	resave: false,
 	saveUninitialized: true

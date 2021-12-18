@@ -2,6 +2,7 @@ import passport from 'passport'
 import { OAuth2Strategy } from 'passport-oauth'
 import { env } from './env'
 import fetch from 'node-fetch'
+import fs from 'fs'
 
 export function authenticate(req, res, next) {
 	if (!req.user) {
@@ -19,8 +20,14 @@ export interface UserProfile {
 	accessToken: string,
 	refreshToken: string,
 }
-const users: UserProfile[] = []
+const USERSDBPATH = env.sessionStorePath + 'users.json'
+const usersDB: UserProfile[] = []
+const emptyUsersDB: string = JSON.stringify(usersDB)
+fs.mkdirSync(env.sessionStorePath, { recursive: true })
+if (!fs.existsSync(USERSDBPATH) || fs.statSync(USERSDBPATH).size < emptyUsersDB.length)
+	fs.writeFileSync(USERSDBPATH, emptyUsersDB)
 
+const users: UserProfile[] = JSON.parse(fs.readFileSync(USERSDBPATH).toString())
 
 passport.serializeUser((user, done) => {
 	done(null, user.id)
@@ -65,6 +72,7 @@ const client = new OAuth2Strategy({
 		let existingUser = users.find((user) => user.id === newUser.id)
 		if (!existingUser) {
 			users.push(newUser)
+			fs.promises.writeFile(USERSDBPATH, JSON.stringify(users))
 			existingUser = newUser
 		}
 		done(null, existingUser);
