@@ -48,13 +48,13 @@ export async function listIDs(gmail: gmail_v1.Gmail, maxResults?: number): Promi
 	return new Promise((resolve, reject) => {
 		let headers: gmail_v1.Params$Resource$Users$Messages$List = {
 			userId: 'me',
-			q: 'label:inbox'
+			q: 'label:all'
 		}
 		if (maxResults)
 			headers.maxResults = maxResults
 		gmail.users.messages.list(headers, (err, res) => {
 			if (err) {
-				console.error(err)
+				console.error('listIDs failed with', err.message)
 				resolve(null)
 			}
 			resolve(res?.data.messages as FullMailID[] || []);
