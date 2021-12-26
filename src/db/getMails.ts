@@ -23,7 +23,8 @@ export async function saveToken(code: string) {
 			resolve(token)
 		})
 	})
-	await fs.writeFile(TOKEN_PATH, JSON.stringify(token))
+	if (token)
+		await fs.writeFile(TOKEN_PATH, JSON.stringify(token))
 }
 
 export async function setGmailSuccess(): Promise<boolean> {
