@@ -1,5 +1,5 @@
 import { IntraLogin, Time, MailID } from './types'
-import mongoose, { Schema, Document } from 'mongoose'
+import mongoose, { Schema } from 'mongoose'
 
 export interface ForwardVerification extends Document {
 	code: string
@@ -12,7 +12,7 @@ const ForwardVerificationSchema: Schema = new Schema({
 	from: { type: String, required: true },
 	mailID: { type: String, required: true },
 	d: { type: Date, required: true },
-})
+}, { versionKey: false })
 
 export interface LogtimeReport extends Document {
 	mail: {
@@ -35,10 +35,10 @@ const LogtimeReportSchema: Schema = new Schema({
 	login: { type: String, required: true },
 	buildingTime: { type: Number, required: true },
 	clusterTime: { type: Number, required: true },
-})
+}, { versionKey: false })
 
 
-export interface Mail {
+export interface Mail extends Document {
 	id: MailID
 	content: string
 	from: string
@@ -51,9 +51,9 @@ const MailSchema: Schema = new Schema({
 	from: { type: String, required: true },
 	subject: { type: String, required: true },
 	d: { type: Date, required: true },
-})
+}, { versionKey: false })
 
-export interface UserProfile {
+export interface UserProfile extends Document {
 	id: number,
 	login: string,
 	first_name: string,
@@ -68,13 +68,21 @@ const UserProfileSchema = new Schema({
 	displayname: { type: String, required: true },
 	accessToken: { type: String, required: true },
 	refreshToken: { type: String, required: true },
-})
+}, { versionKey: false })
+
+export interface MailPull extends Document {
+	d: Date
+}
+const MailPullSchema = new Schema({
+	d: { type: Date, required: true },
+}, { versionKey: false })
 
 const models = {
 	ForwardVerification: mongoose.model<ForwardVerification>('ForwardVerifications', ForwardVerificationSchema),
 	LogtimeReport: mongoose.model<LogtimeReport>('LogtimeReports', LogtimeReportSchema),
 	FailedMail: mongoose.model<Mail>('FailedMails', MailSchema),
 	UserProfile: mongoose.model<UserProfile>('UserProfiles', UserProfileSchema),
+	MailPull: mongoose.model<MailPull>('MailPulls', MailPullSchema),
 }
 
 export { models }

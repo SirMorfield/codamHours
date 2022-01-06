@@ -2,7 +2,7 @@ import { DB, MailID, Mail } from '../types'
 import * as mailer from './getMails'
 import { getLogtimeReport } from './getLogtimeReport'
 import { getForwardVerification } from './getForwardVerification'
-import { models } from '../models'
+import { models, MailPull } from '../models'
 
 function censorEmail(email: string): string { // abcdef@gmail.com --> ab****@gmail.com
 	return email.replace(/(.{3})(.*)(?=@)/, (gp1, gp2, gp3) => {
@@ -13,39 +13,6 @@ function censorEmail(email: string): string { // abcdef@gmail.com --> ab****@gma
 }
 
 export class DataBase {
-	private _isPullingMails: boolean
-	private lastMailPull: number
-
-	constructor() {
-		this._isPullingMails = false
-		this.lastMailPull = 0
-	}
-
-	async addLogtimeReport(report: DB.LogtimeReport): Promise<void> {
-		console.log('report      \t', report)
-		if (await models.LogtimeReport.exists({ 'mail.id': report.mail.id }))
-			return
-		const newReport = new models.LogtimeReport(report)
-		await newReport.save()
-	}
-
-	async addForwardVerification(verification: DB.ForwardVerification): Promise<void> {
-		const exists = await models.ForwardVerification.exists({ mailID: verification.mailID })
-		console.log('verification\t', verification.mailID, exists)
-		if (exists)
-			return
-		const newVerification = new models.ForwardVerification(verification)
-		await newVerification.save()
-	}
-
-	async addFailedMail(mail: Mail): Promise<void> {
-		console.log('failed     \t', mail)
-		if (await models.FailedMail.exists({ id: mail.id }))
-			return
-		const newMail = new models.FailedMail(mail)
-		await newMail.save()
-	}
-
 	async mailInDatabase(id: MailID): Promise<boolean> {
 		if (await models.LogtimeReport.exists({ 'mail.id': id }))
 			return true
@@ -56,29 +23,34 @@ export class DataBase {
 		return false
 	}
 
-	async pullMails(ignorePullTimeout = false): Promise<void> {
-		if (this._isPullingMails)
-			return
-		if (!ignorePullTimeout && Date.now() - this.lastMailPull < 30 * 1000)
-			return
-		this._isPullingMails = true
-		this.lastMailPull = Date.now()
+	// Preventing mails form being pulled too often
+	private async _canPull(): Promise<boolean> {
+		const lastPull: MailPull | null = await models.MailPull.findOne().sort({ '_id': -1 }).limit(1)
+		if (!lastPull || Date.now() - lastPull.d.getTime() > 40 * 1000) {
+			const pull = new models.MailPull({ d: new Date() })
+			await pull.save()
+			return true
+		}
+		return false
+	}
 
+	async pullMails(ignorePullTimeout = false): Promise<void> {
+		if (!ignorePullTimeout && !(await this._canPull()))
+			return
 		const mails: Mail[] = await mailer.getMails(this.mailInDatabase)
 		for (const mail of mails) {
 			const report: DB.LogtimeReport | null = getLogtimeReport(mail)
 			if (report) {
-				await this.addLogtimeReport(report)
+				await models.LogtimeReport.updateOne({ 'mail.id': report.mail.id }, report, { upsert: true }).exec()
 				continue
 			}
 			const verification: DB.ForwardVerification | null = getForwardVerification(mail)
 			if (verification) {
-				await this.addForwardVerification(verification)
+				await models.ForwardVerification.updateOne({ mailID: verification.mailID }, verification, { upsert: true }).exec()
 				continue
 			}
-			await this.addFailedMail(mail)
+			await models.FailedMail.updateOne({ id: mail.id }, mail, { upsert: true }).exec()
 		}
-		this._isPullingMails = false
 	}
 
 	async getForwardVerifications(): Promise<{ code: string, from: string }[]> { // TODO
