@@ -26,7 +26,7 @@ interface Env {
 
 	envDir: fs.PathLike
 	logtimeReportSender: string
-	sessionStorePath: fs.PathLike
+	mongoUrl: string
 }
 type URL = string
 
@@ -35,5 +35,5 @@ export const env: Env = {
 	...JSON.parse(fs.readFileSync('./env/env.json').toString()),
 	...JSON.parse(fs.readFileSync('./env/credentials.json').toString()),
 	envDir: './env/',
-	sessionStorePath: './sessions/'
+	mongoUrl: 'mongodb://mongo:27017/',
 }

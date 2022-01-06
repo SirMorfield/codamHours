@@ -2,17 +2,19 @@ import express from "express"
 import path from "path"
 import session from 'express-session'
 import { v4 as uuid } from 'uuid'
-import { passport, UserProfile } from './authentication'
+import { passport } from './authentication'
 import { env } from "./env"
 import { DataBase } from './db/database'
 import { authUrl, saveToken, setGmailSuccess } from "./db/getMails"
 import { getPersonInfo } from './db/ui'
 import fs from 'fs'
 import mongoose from 'mongoose'
+import MongoStore from 'connect-mongo'
+import { UserProfile } from './models'
 
 const opt: mongoose.ConnectOptions = {
 }
-mongoose.connect('mongodb://mongo:27017/', opt, () => {
+mongoose.connect(env.mongoUrl, opt, () => {
 	console.log('connected to database')
 })
 
@@ -20,12 +22,12 @@ const app = express()
 app.set("views", path.join(__dirname, "../views"))
 app.set('viewengine', 'ejs')
 
-const FileStore = require('session-file-store')(session);
+const collectionName = 'session'
 app.use(session({
 	genid: (req) => {
 		return uuid()
 	},
-	store: new FileStore({ path: env.sessionStorePath, retries: 1 }),
+	store: MongoStore.create({ mongoUrl: env.mongoUrl + 'session', collectionName }),
 	secret: env.sessionSecret,
 	resave: false,
 	saveUninitialized: true

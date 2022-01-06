@@ -2,7 +2,7 @@ import passport from 'passport'
 import { OAuth2Strategy } from 'passport-oauth'
 import { env } from './env'
 import fetch from 'node-fetch'
-import fs from 'fs'
+import { models, UserProfile } from './models'
 
 export function authenticate(req, res, next) {
 	if (!req.user) {
@@ -12,29 +12,13 @@ export function authenticate(req, res, next) {
 	}
 }
 
-export interface UserProfile {
-	id: number,
-	login: string,
-	first_name: string,
-	displayname: string,
-	accessToken: string,
-	refreshToken: string,
-}
-const USERSDBPATH = env.sessionStorePath + 'users.json'
-const usersDB: UserProfile[] = []
-const emptyUsersDB: string = JSON.stringify(usersDB)
-fs.mkdirSync(env.sessionStorePath, { recursive: true })
-if (!fs.existsSync(USERSDBPATH) || fs.statSync(USERSDBPATH).size < emptyUsersDB.length)
-	fs.writeFileSync(USERSDBPATH, emptyUsersDB)
-
-const users: UserProfile[] = JSON.parse(fs.readFileSync(USERSDBPATH).toString())
-
 passport.serializeUser((user, done) => {
-	done(null, user.id)
+	// @ts-ignore
+	done(null, user.id) // i do not know why ts thinks this is a Express.user instead of a UserProfile
 })
 
-passport.deserializeUser((id, done) => {
-	const user = users.find((user) => user.id === id)
+passport.deserializeUser(async (id, done) => {
+	const user = await models.UserProfile.findOne({ id }).exec()
 	done(null, user)
 })
 
@@ -69,13 +53,8 @@ const client = new OAuth2Strategy({
 		const newUser = await getProfile(accessToken, refreshToken)
 		if (!newUser)
 			return done('cannot get user info', null)
-		let existingUser = users.find((user) => user.id === newUser.id)
-		if (!existingUser) {
-			users.push(newUser)
-			fs.promises.writeFile(USERSDBPATH, JSON.stringify(users))
-			existingUser = newUser
-		}
-		done(null, existingUser);
+		await models.UserProfile.updateOne({ id: newUser.id }, newUser, { upsert: true }).exec()
+		done(null, newUser)
 	}
 )
 passport.use(env.provider, client)

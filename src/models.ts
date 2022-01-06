@@ -53,10 +53,28 @@ const MailSchema: Schema = new Schema({
 	d: { type: Date, required: true },
 })
 
+export interface UserProfile {
+	id: number,
+	login: string,
+	first_name: string,
+	displayname: string,
+	accessToken: string,
+	refreshToken: string,
+}
+const UserProfileSchema = new Schema({
+	id: { type: Number, required: true },
+	login: { type: String, required: true },
+	first_name: { type: String, required: true },
+	displayname: { type: String, required: true },
+	accessToken: { type: String, required: true },
+	refreshToken: { type: String, required: true },
+})
+
 const models = {
 	ForwardVerification: mongoose.model<ForwardVerification>('ForwardVerifications', ForwardVerificationSchema),
 	LogtimeReport: mongoose.model<LogtimeReport>('LogtimeReports', LogtimeReportSchema),
 	FailedMail: mongoose.model<Mail>('FailedMails', MailSchema),
+	UserProfile: mongoose.model<UserProfile>('UserProfiles', UserProfileSchema),
 }
 
 export { models }
