@@ -1,7 +1,7 @@
 import { IntraLogin, Time, MailID } from './types'
 import mongoose, { Schema } from 'mongoose'
 
-export interface ForwardVerification extends Document {
+export interface ForwardVerification {
 	code: string
 	from: string
 	mailID: MailID
@@ -14,7 +14,7 @@ const ForwardVerificationSchema: Schema = new Schema({
 	d: { type: Date, required: true },
 }, { versionKey: false })
 
-export interface LogtimeReport extends Document {
+export interface LogtimeReport {
 	mail: {
 		id: MailID
 		d: Time.ISOstring
@@ -38,7 +38,7 @@ const LogtimeReportSchema: Schema = new Schema({
 }, { versionKey: false })
 
 
-export interface Mail extends Document {
+export interface Mail {
 	id: MailID
 	content: string
 	from: string
@@ -53,7 +53,7 @@ const MailSchema: Schema = new Schema({
 	d: { type: Date, required: true },
 }, { versionKey: false })
 
-export interface UserProfile extends Document {
+export interface UserProfile {
 	id: number,
 	login: string,
 	first_name: string,
@@ -70,7 +70,7 @@ const UserProfileSchema = new Schema({
 	refreshToken: { type: String, required: true },
 }, { versionKey: false })
 
-export interface MailPull extends Document {
+export interface MailPull {
 	d: Date
 }
 const MailPullSchema = new Schema({
