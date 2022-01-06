@@ -1,4 +1,5 @@
-import { DB, MailID, Mail } from '../types'
+import { MailID, Mail } from '../types'
+import { LogtimeReport, ForwardVerification } from '../models'
 import * as mailer from './getMails'
 import { getLogtimeReport } from './getLogtimeReport'
 import { getForwardVerification } from './getForwardVerification'
@@ -39,12 +40,12 @@ export class DataBase {
 			return
 		const mails: Mail[] = await mailer.getMails(this.mailInDatabase)
 		for (const mail of mails) {
-			const report: DB.LogtimeReport | null = getLogtimeReport(mail)
+			const report: LogtimeReport | null = getLogtimeReport(mail)
 			if (report) {
 				await models.LogtimeReport.updateOne({ 'mail.id': report.mail.id }, report, { upsert: true }).exec()
 				continue
 			}
-			const verification: DB.ForwardVerification | null = getForwardVerification(mail)
+			const verification: ForwardVerification | null = getForwardVerification(mail)
 			if (verification) {
 				await models.ForwardVerification.updateOne({ mailID: verification.mailID }, verification, { upsert: true }).exec()
 				continue

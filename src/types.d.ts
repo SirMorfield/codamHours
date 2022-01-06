@@ -19,32 +19,6 @@ export interface Mail {
 	d: Date
 }
 
-export namespace DB {
-	interface ForwardVerification {
-		code: string
-		from: string
-		mailID: MailID
-		d: Date
-	}
-	interface LogtimeReport {
-		mail: {
-			id: MailID
-			d: Time.ISOstring
-		}
-		from: string
-		d: Time.ISOstring // the date of the report
-		login: IntraLogin
-		buildingTime: Time.Hours
-		clusterTime: Time.Hours
-	}
-	interface Content {
-		reports: DB.LogtimeReport[]
-		forwardVerifications: DB.ForwardVerification[]
-		failedParse: Mail[]
-		lastMailPull: Time.Epoch
-	}
-}
-
 export namespace UI {
 	interface Weekdata {
 		year: number

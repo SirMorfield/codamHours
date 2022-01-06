@@ -1,5 +1,7 @@
 // import { env } from '../env'
-import { DB, IntraLogin, Mail, Time } from '../types'
+import { IntraLogin, Mail, Time } from '../types'
+import { LogtimeReport } from '../models'
+
 // const year = parseInt(m.content.match(/(?<=For )\d+/)![0]!)
 // const month = parseInt(m.content.match(/(?<=(For \d\d\d\d)-)\d\d/)![0]!)
 // const day = parseInt(m.content.match(/(?<=(For \d\d\d\d)-\d\d-)\d\d/)![0]!)
@@ -18,7 +20,7 @@ function getHours(timeStr: string | undefined): Time.Hours {
 	return hours
 }
 
-export function getLogtimeReport(m: Mail): DB.LogtimeReport | null {
+export function getLogtimeReport(m: Mail): LogtimeReport | null {
 	// if (m.from != env.logtimeReportSender) // TODO add this?
 	// 	return null
 	try {

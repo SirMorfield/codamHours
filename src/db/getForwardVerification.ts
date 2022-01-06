@@ -1,6 +1,7 @@
-import { DB, Mail } from '../types'
+import { Mail } from '../types'
+import { ForwardVerification } from '../models'
 
-export function getForwardVerification(m: Mail): DB.ForwardVerification | null {
+export function getForwardVerification(m: Mail): ForwardVerification | null {
 	try {
 		const verification = {
 			code: m.subject.match(/(?<=\(#)\d+/i)![0]!,

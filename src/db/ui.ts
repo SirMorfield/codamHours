@@ -1,8 +1,9 @@
-import { DB, UI, IntraLogin, Time } from '../types'
+import { UI, IntraLogin, Time } from '../types'
+import { LogtimeReport } from '../models'
 import { formatDate, getWeekAndYear, getWeekRange } from './dateUtils'
 import { models } from '../models'
 
-function reportsToWeekdata(reports: DB.LogtimeReport[]): UI.Weekdata[] {
+function reportsToWeekdata(reports: LogtimeReport[]): UI.Weekdata[] {
 	let weekDatas: UI.Weekdata[] = []
 	for (const report of reports) {
 		const { year, week } = getWeekAndYear(new Date(report.d))
@@ -24,7 +25,7 @@ function reportsToWeekdata(reports: DB.LogtimeReport[]): UI.Weekdata[] {
 	return weekDatas
 }
 
-function toUIlogtimeReport(report: DB.LogtimeReport): UI.LogtimeReport {
+function toUIlogtimeReport(report: LogtimeReport): UI.LogtimeReport {
 	return {
 		date: formatDate(new Date(report.d), false),
 		buildingTime: report.buildingTime,
@@ -32,7 +33,7 @@ function toUIlogtimeReport(report: DB.LogtimeReport): UI.LogtimeReport {
 	}
 }
 
-function getThisWeekLogtimeReports(w: number, y: number, reports: DB.LogtimeReport[]): UI.LogtimeReport[] {
+function getThisWeekLogtimeReports(w: number, y: number, reports: LogtimeReport[]): UI.LogtimeReport[] {
 	const thisWeek = reports.filter(l => {
 		const { week, year } = getWeekAndYear(new Date(l.d))
 		return w == week && y == year
@@ -41,7 +42,7 @@ function getThisWeekLogtimeReports(w: number, y: number, reports: DB.LogtimeRepo
 	return thisWeek.map(report => toUIlogtimeReport(report))
 }
 
-function getThisWeek(weekDatas: UI.Weekdata[], reports: DB.LogtimeReport[]): UI.ThisWeek {
+function getThisWeek(weekDatas: UI.Weekdata[], reports: LogtimeReport[]): UI.ThisWeek {
 	const now = new Date()
 	const { week, year } = getWeekAndYear(now)
 	let times: { buildingTime: Time.Hours, clusterTime: Time.Hours }
@@ -59,7 +60,7 @@ function getThisWeek(weekDatas: UI.Weekdata[], reports: DB.LogtimeReport[]): UI.
 }
 
 export async function getPersonInfo(login: IntraLogin): Promise<UI.User | null> {
-	const reports: DB.LogtimeReport[] = await models.LogtimeReport.find({ login }).exec()
+	const reports: LogtimeReport[] = await models.LogtimeReport.find({ login }).exec()
 
 	const weekDatas = reportsToWeekdata(reports)
 	reports.sort((a, b) => (new Date(b.d)).getTime() - (new Date(a.d)).getTime()) // last date first
