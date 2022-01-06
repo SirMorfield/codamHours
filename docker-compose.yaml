@@ -1,0 +1,17 @@
+version: "3"
+
+services:
+  mongo:
+    image: mongo:latest
+    volumes:
+      # - './mongo.conf:/etc/mongo/mongo.conf'
+      - ./data/db:/data/db
+  hours:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080 # optional
+    volumes:
+      - ./:/app
+    restart: unless-stopped

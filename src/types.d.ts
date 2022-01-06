@@ -24,7 +24,7 @@ export namespace DB {
 		code: string
 		from: string
 		mailID: MailID
-		d: Time.ISOstring
+		d: Date
 	}
 	interface LogtimeReport {
 		mail: {

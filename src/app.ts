@@ -8,6 +8,13 @@ import { DataBase } from './db/database'
 import { authUrl, saveToken, setGmailSuccess } from "./db/getMails"
 import { getPersonInfo } from './db/ui'
 import fs from 'fs'
+import mongoose from 'mongoose'
+
+const opt: mongoose.ConnectOptions = {
+}
+mongoose.connect('mongodb://mongo:27017/', opt, () => {
+	console.log('connected to database')
+})
 
 const app = express()
 app.set("views", path.join(__dirname, "../views"))
@@ -45,12 +52,12 @@ app.get(`/AUTHGMAIL${gmailAuthPath}`, (req, res) => {
 })
 
 app.get(`/${gmailAuthPath}`, async (req, res) => {
-	await saveToken(req.query.code)
+	await saveToken(req.query['code'] as string)
 	const succes = await setGmailSuccess()
 	res.send(succes ? 'success' : 'failure')
 })
 
-const dataBase = new DataBase("database.json");
+const dataBase = new DataBase();
 
 (async () => {
 	while (true) {
@@ -63,7 +70,7 @@ app.get('/', async (req, res) => {
 	if (!req.user)
 		return res.redirect('/setup')
 	const user = req.user as UserProfile
-	const userData = getPersonInfo(dataBase._db.reports, user.login)
+	const userData = await getPersonInfo(user.login)
 	if (!userData || userData.reports.length == 0)
 		return res.redirect('/setup')
 	res.render('index.ejs', userData)
@@ -72,7 +79,7 @@ app.get('/', async (req, res) => {
 app.get('/setup', async (req, res) => {
 	const data = {
 		// forwardVerifications: req.user ? dataBase.getForwardVerifications() : [],
-		forwardVerifications: dataBase.getForwardVerifications(),
+		forwardVerifications: await dataBase.getForwardVerifications(),
 		loginRoute: env.loginRoute,
 	}
 	res.render('setup.ejs', data)

@@ -1,8 +1,8 @@
-import fs from 'fs'
 import { DB, MailID, Mail } from '../types'
 import * as mailer from './getMails'
 import { getLogtimeReport } from './getLogtimeReport'
 import { getForwardVerification } from './getForwardVerification'
+import { models } from '../models'
 
 function censorEmail(email: string): string { // abcdef@gmail.com --> ab****@gmail.com
 	return email.replace(/(.{3})(.*)(?=@)/, (gp1, gp2, gp3) => {
@@ -13,56 +13,58 @@ function censorEmail(email: string): string { // abcdef@gmail.com --> ab****@gma
 }
 
 export class DataBase {
-	readonly filePath: fs.PathLike
-	readonly _db: DB.Content
 	private _isPullingMails: boolean
+	private lastMailPull: number
 
-	constructor(fileName: string) {
-		this.filePath = fileName
+	constructor() {
 		this._isPullingMails = false
-		const emptyDB: DB.Content = { reports: [], forwardVerifications: [], failedParse: [], lastMailPull: 0 }
-		const emptyDBstr: string = JSON.stringify(emptyDB)
-		if (!fs.existsSync(this.filePath) || fs.statSync(this.filePath).size < emptyDBstr.length)
-			fs.writeFileSync(this.filePath, emptyDBstr)
-		this._db = JSON.parse(fs.readFileSync(this.filePath).toString())!
-	}
-
-	private async _syncToDisk() {
-		await fs.promises.writeFile(this.filePath, JSON.stringify(this._db))
+		this.lastMailPull = 0
 	}
 
 	async addLogtimeReport(report: DB.LogtimeReport): Promise<void> {
-		this._db.failedParse = this._db.failedParse.filter(f => f.id != report.mail.id)
-		if (this._db.reports.find(x => x.mail.id == report.mail.id))
+		console.log('report      \t', report)
+		if (await models.LogtimeReport.exists({ 'mail.id': report.mail.id }))
 			return
-		this._db.reports.push(report)
-		await this._syncToDisk()
+		const newReport = new models.LogtimeReport(report)
+		await newReport.save()
 	}
 
-	async addForwardVerification(verfication: DB.ForwardVerification): Promise<void> {
-		this._db.failedParse = this._db.failedParse.filter(f => f.id != verfication.mailID)
-		if (this._db.reports.find(x => x.mail.id == verfication.mailID))
+	async addForwardVerification(verification: DB.ForwardVerification): Promise<void> {
+		const exists = await models.ForwardVerification.exists({ mailID: verification.mailID })
+		console.log('verification\t', verification.mailID, exists)
+		if (exists)
 			return
-		this._db.forwardVerifications.push(verfication)
-		await this._syncToDisk()
+		const newVerification = new models.ForwardVerification(verification)
+		await newVerification.save()
 	}
 
-	private _savedMails(): MailID[] {
-		const reports = this._db.reports.map(report => report.mail.id)
-		const verifications = this._db.forwardVerifications.map(x => x.mailID)
-		const failedParse = this._db.failedParse.map(x => x.id)
-		return [...reports, ...verifications, ...failedParse]
+	async addFailedMail(mail: Mail): Promise<void> {
+		console.log('failed     \t', mail)
+		if (await models.FailedMail.exists({ id: mail.id }))
+			return
+		const newMail = new models.FailedMail(mail)
+		await newMail.save()
+	}
+
+	async mailInDatabase(id: MailID): Promise<boolean> {
+		if (await models.LogtimeReport.exists({ 'mail.id': id }))
+			return true
+		if (await models.ForwardVerification.exists({ mailID: id }))
+			return true
+		if (await models.FailedMail.exists({ id }))
+			return true
+		return false
 	}
 
 	async pullMails(ignorePullTimeout = false): Promise<void> {
 		if (this._isPullingMails)
 			return
-		if (!ignorePullTimeout && Date.now() - this._db.lastMailPull < 30 * 1000)
+		if (!ignorePullTimeout && Date.now() - this.lastMailPull < 30 * 1000)
 			return
 		this._isPullingMails = true
-		this._db.lastMailPull = Date.now()
+		this.lastMailPull = Date.now()
 
-		const mails: Mail[] = await mailer.getMails(this._savedMails())
+		const mails: Mail[] = await mailer.getMails(this.mailInDatabase)
 		for (const mail of mails) {
 			const report: DB.LogtimeReport | null = getLogtimeReport(mail)
 			if (report) {
@@ -71,18 +73,18 @@ export class DataBase {
 			}
 			const verification: DB.ForwardVerification | null = getForwardVerification(mail)
 			if (verification) {
-				this.addForwardVerification(verification)
+				await this.addForwardVerification(verification)
 				continue
 			}
-			this._db.failedParse.push(mail)
-			await this._syncToDisk()
+			await this.addFailedMail(mail)
 		}
 		this._isPullingMails = false
 	}
 
-	getForwardVerifications(): { code: string, from: string }[] {
-		this._db.forwardVerifications.sort((a, b) => (new Date(b.d)).getTime() - (new Date(a.d)).getTime()) // last email first
-		const mails = this._db.forwardVerifications.filter(f => (Date.now() - (new Date(f.d)).getTime()) < 4 * 24 * 60 * 60 * 1000) // do not show emails after 4 days
+	async getForwardVerifications(): Promise<{ code: string, from: string }[]> { // TODO
+		const v = await models.ForwardVerification.find().exec()
+		v.sort((a, b) => (new Date(b.d)).getTime() - (new Date(a.d)).getTime()) // last email first
+		const mails = v.filter(f => (Date.now() - (new Date(f.d)).getTime()) < 4 * 24 * 60 * 60 * 1000) // do not show emails after 4 days
 		return mails.map(f => ({ code: f.code, from: censorEmail(f.from) }))
 	}
 }

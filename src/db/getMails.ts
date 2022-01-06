@@ -98,7 +98,7 @@ export async function getContent(gmail: gmail_v1.Gmail, id: FullMailID): Promise
 	})
 }
 
-export async function getMails(ignore: MailID[] = [], maxResults?: number): Promise<Mail[]> {
+export async function getMails(isInDb: (id: MailID) => Promise<boolean>, maxResults?: number): Promise<Mail[]> {
 	if (!gmail)
 		await setGmailSuccess()
 	if (!gmail) {
@@ -107,9 +107,10 @@ export async function getMails(ignore: MailID[] = [], maxResults?: number): Prom
 	}
 	console.log(new Date(), 'getting mails')
 	let IDs: FullMailID[] = await listIDs(gmail, maxResults) as FullMailID[]
-	IDs = IDs.filter(id => !ignore.includes(id.id))
 	const contents: Mail[] = []
 	for (const id of IDs) {
+		if (await isInDb(id.id))
+			continue
 		const content: Mail | null = await getContent(gmail, id)
 		if (content)
 			contents.push(content)

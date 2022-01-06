@@ -1,5 +1,6 @@
 import { DB, UI, IntraLogin, Time } from '../types'
 import { formatDate, getWeekAndYear, getWeekRange } from './dateUtils'
+import { models } from '../models'
 
 function reportsToWeekdata(reports: DB.LogtimeReport[]): UI.Weekdata[] {
 	let weekDatas: UI.Weekdata[] = []
@@ -57,12 +58,9 @@ function getThisWeek(weekDatas: UI.Weekdata[], reports: DB.LogtimeReport[]): UI.
 	}
 }
 
-export function getPersonInfo(dbReports: DB.LogtimeReport[], login: IntraLogin): UI.User | null {
-	const reports: DB.LogtimeReport[] = []
-	for (const dbReport of dbReports) {
-		if (dbReport.login == login && !reports.find(report => report.d == dbReport.d)) // also ignore duplicate mails
-			reports.push(dbReport)
-	}
+export async function getPersonInfo(login: IntraLogin): Promise<UI.User | null> {
+	const reports: DB.LogtimeReport[] = await models.LogtimeReport.find({ login }).exec()
+
 	const weekDatas = reportsToWeekdata(reports)
 	reports.sort((a, b) => (new Date(b.d)).getTime() - (new Date(a.d)).getTime()) // last date first
 
