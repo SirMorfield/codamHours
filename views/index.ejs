@@ -41,6 +41,10 @@
 		.header {
 			font-size: 130%;
 		}
+
+		table {
+    		white-space: nowrap;
+		}
 	</style>
 </head>
 
@@ -96,6 +100,8 @@
 <% if (reports.length==0) { %>
 	Server has not recieved any logtime reports<br>
 	Go to <a href="/setup">setup</a> to see how you can forward your logtime report mails
+	<br>
+	<br>
 	<% } %>
 
 <table>
@@ -114,8 +120,6 @@
 		</tr>
 		<% }); %>
 </table>
-<br>
-<br>
 <br>
 <table>
 	<caption class="header">Week history</caption>

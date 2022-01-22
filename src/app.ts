@@ -11,6 +11,7 @@ import fs from 'fs'
 import mongoose from 'mongoose'
 import MongoStore from 'connect-mongo'
 import { UserProfile } from './models'
+import { authenticate } from './authentication'
 
 const opt: mongoose.ConnectOptions = {
 }
@@ -30,7 +31,7 @@ app.use(session({
 	store: MongoStore.create({ mongoUrl: env.mongoUrl + 'session', collectionName }),
 	secret: env.sessionSecret,
 	resave: false,
-	saveUninitialized: true
+	saveUninitialized: false
 }))
 
 app.use(passport.initialize())
@@ -39,11 +40,11 @@ app.use(passport.session())
 app.get(`/auth/${env.provider}/`, passport.authenticate(env.provider, { scope: env.scope }))
 app.get(`/auth/${env.provider}/callback`,
 	passport.authenticate(env.provider, {
-		successRedirect: '/',
+		successRedirect: '/setup',
 		failureRedirect: env.loginRoute
 	}))
 
-app.get('/auth/logout', (req, res) => {
+app.get('/auth/logout', (req, res) => { // TODO: doesn't work
 	req.logout()
 	res.render('loggedOut.ejs')
 })
@@ -69,17 +70,17 @@ const dataBase = new DataBase();
 	}
 })()
 
-app.get('/', async (req, res) => {
-	if (!req.user)
-		return res.redirect('/setup')
+app.get('/', authenticate, async (req, res) => {
 	const user = req.user as UserProfile
 	const userData = await getPersonInfo(user.login)
-	if (!userData || userData.reports.length == 0)
-		return res.redirect('/setup')
 	res.render('index.ejs', userData)
 })
 
-app.get('/setup', async (req, res) => {
+app.get('/setup', authenticate, async (req, res) => {
+	const user = req.user as UserProfile
+	if (user && (await getPersonInfo(user.login)).reports.length > 0)
+		res.redirect('/')
+
 	const data = {
 		// forwardVerifications: req.user ? dataBase.getForwardVerifications() : [],
 		forwardVerifications: await dataBase.getForwardVerifications(),
