@@ -59,7 +59,7 @@ function getThisWeek(weekDatas: UI.Weekdata[], reports: LogtimeReport[]): UI.Thi
 	}
 }
 
-export async function getPersonInfo(login: IntraLogin): Promise<UI.User | null> {
+export async function getPersonInfo(login: IntraLogin): Promise<UI.User> {
 	const reports: LogtimeReport[] = await models.LogtimeReport.find({ login }).exec()
 
 	const weekDatas = reportsToWeekdata(reports)
