@@ -42,9 +42,10 @@ app.get(`/auth/${env.provider}/callback`,
 		successRedirect: '/',
 		failureRedirect: env.loginRoute
 	}))
+
 app.get('/auth/logout', (req, res) => {
 	req.logout()
-	res.redirect('/')
+	res.render('loggedOut.ejs')
 })
 
 //@ts-ignore
