@@ -12,7 +12,9 @@
 		:root {
 			color-scheme: dark;
 			font-family: 'Source Code Pro', monospace;
+			padding: 0 10px;
 		}
+
 		tr {
 			border: none;
 		}
@@ -47,16 +49,16 @@
 </body>
 <h1>Building Hours overview (Beta)</h1>
 <h6>
-	Hosted and build by Joppe Koers
+	Hosted and build by Joppe Koers/<a href="https://profile.intra.42.fr/users/jkoers">@jkoers</a>
 </h6>
 
 
 <table class="header">
 	<caption>This week</caption>
-	<tr style="color:rgb(180, 0, 0)">
+	<tr style="color:rgb(0, 180, 0)">
 		<td>In building</td>
 		<td>
-			<%= Math.floor(thisWeek.buildingTime).toString().padStart(2, '0') %>:<%= Math.floor((thisWeek.buildingTime * 60) % 60).toString().padStart(2, '0') %> hours
+			<%= Math.floor(thisWeek.buildingTime).toString().padStart(2, '0' ) %>:<%= Math.floor((thisWeek.buildingTime * 60) % 60).toString().padStart(2, '0' ) %> hours
 		</td>
 
 	</tr>
@@ -93,7 +95,7 @@
 
 <% if (reports.length==0) { %>
 	Server has not recieved any logtime reports<br>
-	Go to <a href="/setup">setup</a> to see how you can forward your logtime report
+	Go to <a href="/setup">setup</a> to see how you can forward your logtime report mails
 	<% } %>
 
 <table>

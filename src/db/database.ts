@@ -58,6 +58,8 @@ export class DataBase {
 		const v = await models.ForwardVerification.find().exec()
 		v.sort((a, b) => (new Date(b.d)).getTime() - (new Date(a.d)).getTime()) // last email first
 		const mails = v.filter(f => (Date.now() - (new Date(f.d)).getTime()) < 4 * 24 * 60 * 60 * 1000) // do not show emails after 4 days
-		return mails.map(f => ({ code: f.code, from: censorEmail(f.from) }))
+		const mails2 = mails.map(f => ({ code: f.code, from: censorEmail(f.from) }))
+		mails2.unshift({ code: '123456', from: censorEmail('example@example.com') })
+		return mails2
 	}
 }
