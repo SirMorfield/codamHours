@@ -21,7 +21,7 @@ function reportsToWeekdata(reports: LogtimeReport[]): UI.Weekdata[] {
 			weekData.clusterTime += report.clusterTime
 		}
 	}
-	weekDatas = weekDatas.sort((a, b) => b.week - a.week) // last week first
+	weekDatas = weekDatas.sort((a, b) => (b.year + b.week / 52) - (a.year + a.week / 52)) // last week first
 	return weekDatas
 }
 
