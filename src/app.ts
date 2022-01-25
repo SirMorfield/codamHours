@@ -89,6 +89,20 @@ app.get('/setup', authenticate, async (req, res) => {
 	res.render('setup.ejs', data)
 })
 
+app.get('/users/:login', authenticate, async (req, res) => {
+	const user = req.user as UserProfile
+	if (!env.admins.includes(user.login)) {
+		res.send('unauthorized')
+		return
+	}
+	if (req.params['login']?.length == 0) {
+		res.send('no login provided, use eg. &loging=jkoers')
+		return
+	}
+	const userData = await getPersonInfo(req.params['login'])
+	res.send(userData)
+})
+
 app.get('/mailfilterfile', (req, res) => {
 	const file = '/app/public/logtimeReportForwarding.xml'
 	res.setHeader('Content-disposition', 'attachment; filename=' + path.basename(file))

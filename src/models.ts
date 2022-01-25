@@ -55,7 +55,7 @@ const MailSchema: Schema = new Schema({
 
 export interface UserProfile {
 	id: number,
-	login: string,
+	login: IntraLogin,
 	first_name: string,
 	displayname: string,
 	accessToken: string,

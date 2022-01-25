@@ -1,4 +1,5 @@
 import fs from 'fs'
+import { IntraLogin } from './types'
 
 interface Web {
 	client_id: string
@@ -27,6 +28,7 @@ interface Env {
 	envDir: fs.PathLike
 	logtimeReportSender: string
 	mongoUrl: string
+	admins: IntraLogin[]
 }
 type URL = string
 
@@ -36,4 +38,5 @@ export const env: Env = {
 	...JSON.parse(fs.readFileSync('./env/credentials.json').toString()),
 	envDir: './env/',
 	mongoUrl: 'mongodb://mongo:27017/',
+	admins: ['jkoers'],
 }
