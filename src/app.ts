@@ -78,8 +78,10 @@ app.get('/', authenticate, async (req, res) => {
 
 app.get('/setup', authenticate, async (req, res) => {
 	const user = req.user as UserProfile
-	if (user && (await getPersonInfo(user.login)).reports.length > 0)
+	if (user && (await getPersonInfo(user.login)).reports.length > 0) {
 		res.redirect('/')
+		return
+	}
 
 	const data = {
 		// forwardVerifications: req.user ? dataBase.getForwardVerifications() : [],
