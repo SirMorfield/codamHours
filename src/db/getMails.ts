@@ -23,6 +23,7 @@ export async function saveToken(code: string) {
 			resolve(token)
 		})
 	})
+	console.log(new Date(), 'saving token', token)
 	if (token)
 		await fs.writeFile(TOKEN_PATH, JSON.stringify(token))
 }
@@ -106,7 +107,11 @@ export async function getMails(isInDb: (id: MailID) => Promise<boolean>, maxResu
 		return []
 	}
 	console.log(new Date(), 'getting mails')
-	let IDs: FullMailID[] = await listIDs(gmail, maxResults) as FullMailID[]
+	let IDs: FullMailID[] | null = await listIDs(gmail, maxResults)
+	if (!IDs) {
+		console.log('failed getting IDs')
+		return []
+	}
 	const contents: Mail[] = []
 	for (const id of IDs) {
 		if (await isInDb(id.id))
