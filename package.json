@@ -10,7 +10,7 @@
 		"ejs": "^3.1.6",
 		"express": "^4.17.1",
 		"express-session": "^1.17.2",
-		"googleapis": "^39.2.0",
+		"googleapis": "^78.0.0",
 		"mongoose": "6.1.4",
 		"node-fetch": "^2.1.0",
 		"passport": "^0.5.0",

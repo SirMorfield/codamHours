@@ -24,6 +24,7 @@ interface Env {
 	loginRoute: string
 	scope: string[]
 	web: Web
+	mailSheetID: string,
 
 	envDir: fs.PathLike
 	logtimeReportSender: string
