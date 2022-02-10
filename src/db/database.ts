@@ -1,6 +1,6 @@
 import { MailID, Mail } from '../types'
 import { LogtimeReport, ForwardVerification } from '../models'
-import * as mailer from './getMails'
+import * as mailer from './getMailsSpreadSheet'
 import { getLogtimeReport } from './getLogtimeReport'
 import { getForwardVerification } from './getForwardVerification'
 import { models, MailPull } from '../models'
